@@ -15,7 +15,7 @@ const DashboardLayout = ({ children }: Readonly<{ children: React.ReactNode; }>)
             case '/coding':
                 return 'Exam';
             case '/coding/practice':
-                return 'Practice';
+                return 'Question Bank';
             case '/coding/help':
                 return 'Help';
             default:

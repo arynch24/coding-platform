@@ -145,10 +145,10 @@ const ExamTag: React.FC<{ tag: ExamTag }> = ({ tag }) => (
 );
 
 const UpcomingExamCard: React.FC<{ exam: UpcomingExam }> = ({ exam }) => (
-  <div className="bg-slate-800 rounded-2xl p-5 text-white min-w-[300px] max-w-[320px] flex-shrink-0">
+  <div className="bg-qc-dark rounded-2xl p-5 text-white min-w-[300px] max-w-[320px] flex-shrink-0">
     <div className="mb-5">
       <h3 className="text-lg font-semibold mb-2">{exam.title}</h3>
-      <p className="text-slate-300 text-sm leading-relaxed">{exam.description}</p>
+      <p className="text-zinc-100 text-sm leading-relaxed">{exam.description}</p>
     </div>
 
     <div className="flex flex-wrap gap-2 mb-5">
@@ -158,7 +158,7 @@ const UpcomingExamCard: React.FC<{ exam: UpcomingExam }> = ({ exam }) => (
     </div>
 
     <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3 text-xs text-slate-300">
+      <div className="flex items-center gap-3 text-xs text-zinc-100">
         <div className="flex items-center gap-1">
           <Calendar size={14} />
           <span>{exam.date} {exam.time}</span>
@@ -168,7 +168,7 @@ const UpcomingExamCard: React.FC<{ exam: UpcomingExam }> = ({ exam }) => (
           <span>{exam.duration}</span>
         </div>
       </div>
-      <button className="bg-white text-slate-800 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-slate-100 transition-colors">
+      <button className="bg-white text-slate-800 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-zinc-200 transition-colors cursor-pointer">
         Join
       </button>
     </div>
@@ -183,11 +183,11 @@ const PastExamRow: React.FC<{ exam: PastExam; isLast: boolean }> = ({ exam, isLa
   return (
     <div className={`grid grid-cols-4 gap-4 py-4 px-4 ${!isLast ? 'border-b border-gray-200' : ''}`}>
       <div>
-        <h4 className="font-semibold text-gray-900 mb-1 text-sm">{exam.title}</h4>
-        <p className="text-xs text-gray-600">{exam.description}</p>
+        <h4 className="font-semibold text-qc-primary mb-1 text-sm">{exam.title}</h4>
+        <p className="text-xs text-zinc-600">{exam.description}</p>
       </div>
 
-      <div className="text-gray-900 text-sm">
+      <div className="text-qc-primary text-sm">
         <p>{exam.date} {exam.time}</p>
       </div>
 
@@ -199,7 +199,7 @@ const PastExamRow: React.FC<{ exam: PastExam; isLast: boolean }> = ({ exam, isLa
 
       <div className="text-center">
         <div className="inline-flex items-center justify-center px-3 py-1 bg-gray-100 rounded text-xs">
-          <span className="font-semibold text-gray-900">{exam.solved}</span>
+          <span className="font-semibold text-qc-primary">{exam.solved}</span>
           {solvedPercentage === 100 && (
             <CheckCircle className="ml-1 text-green-500" size={12} />
           )}
@@ -260,7 +260,7 @@ const ExamDashboard: React.FC = () => {
           <>
             {/* Upcoming Exams Section */}
             <div className="mb-8 ">
-              <h2 className="text-2xl font-bold  text-gray-900 mb-6">Upcoming exam</h2>
+              <h2 className="text-2xl font-bold  text-qc-primary mb-6">Upcoming exam</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 w-6xl scrollbar-hide">
                 {dashboardData.upcomingExams.map((exam) => (
                   <UpcomingExamCard key={exam.id} exam={exam} />
@@ -270,14 +270,14 @@ const ExamDashboard: React.FC = () => {
 
             {/* Past Exams Section */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Past exams</h2>
+              <h2 className="text-2xl font-bold text-qc-primary mb-6">Past exams</h2>
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 {/* Header */}
                 <div className="grid grid-cols-4 gap-4 py-3 px-4 bg-gray-100 border-b border-gray-200">
-                  <div className="font-semibold text-gray-900 text-sm">Exam</div>
-                  <div className="font-semibold text-gray-900 text-sm">Date & timing</div>
-                  <div className="font-semibold text-gray-900 text-center text-sm">Rank</div>
-                  <div className="font-semibold text-gray-900 text-center text-sm">Solved</div>
+                  <div className="font-semibold text-qc-primary text-sm">Exam</div>
+                  <div className="font-semibold text-qc-primary text-sm">Date & timing</div>
+                  <div className="font-semibold text-qc-primary text-center text-sm">Rank</div>
+                  <div className="font-semibold text-qc-primary text-center text-sm">Solved</div>
                 </div>
 
                 {/* Rows */}
