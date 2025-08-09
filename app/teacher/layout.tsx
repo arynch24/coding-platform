@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Sidebar from "@/components/student/Sidebar";
+import TeacherSidebar from "@/components/teacher/TeacherSidebar";
 import StickyHeader from "@/components/StickyHeader";
 import { useAuthContext } from '@/context/AuthenticationContext';
 
@@ -12,11 +12,11 @@ const DashboardLayout = ({ children }: Readonly<{ children: React.ReactNode; }>)
     // Function to get header text based on current path
     const getHeaderText = (path: string): string => {
         switch (path) {
-            case '/coding':
-                return 'Exam';
-            case '/coding/practice':
+            case '/teacher':
+                return 'Exam Management';
+            case '/teacher/question-bank':
                 return 'Question Bank';
-            case '/coding/help':
+            case '/teacher/help':
                 return 'Help';
             default:
                 // Handle dynamic routes or fallback
@@ -27,7 +27,7 @@ const DashboardLayout = ({ children }: Readonly<{ children: React.ReactNode; }>)
     return (
         <div className="h-screen flex">
             {/* Sidebar Navigation */}
-            <Sidebar />
+            <TeacherSidebar />
 
             {/* Main Content Area */}
             <div className=" w-full bg-white">

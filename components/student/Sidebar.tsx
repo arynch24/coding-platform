@@ -72,12 +72,6 @@ const QCAuditSidebar: React.FC = () => {
             label: 'Practice',
             icon: <FileCode2 size={20} />,
             navigation: '/coding/practice',
-        },
-        {
-            id: 'help',
-            label: 'Help',
-            icon: <HelpCircle size={20} />,
-            navigation: '/coding/help'
         }
     ];
 
