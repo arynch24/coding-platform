@@ -3,11 +3,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Menu } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { PracticeQuestionsData, Question } from '@/types/dashboard';
+import { PracticeQuestionsData } from '@/types/dashboard';
 import FilterDropdown from '@/components/FilterDropdown';
 import SearchBar from '@/components/SearchBar';
 import QuestionCard from '@/components/QuestionCard';
 import MobileFilters from '@/components/MobileFilters';
+import Error from '@/components/ErrorBox';
+import Loader from '@/components/Loader';
 
 // Mock data
 const mockData: PracticeQuestionsData = {
@@ -174,27 +176,14 @@ const PracticeQuestions: React.FC = () => {
     // console.log(`Navigate to question ${questionId}`);
   };
 
+  // Show loading spinner while fetching data
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-800"></div>
-        <p className="mt-4 text-gray-600">Loading Practice Questions</p>
-      </div>
-    );
+    return <Loader text="Questions are loading" />;
   }
 
+  // Show error message if there's an error
   if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <p className="text-gray-600 mb-4">{error}</p>
-        <button
-          onClick={fetchQuestionsData}
-          className="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-qc-dark transition-colors"
-        >
-          Try Again
-        </button>
-      </div>
-    );
+    return <Error message={error} onRetry={fetchQuestionsData} />;
   }
 
   return (
