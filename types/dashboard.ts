@@ -7,7 +7,7 @@ export interface UserProfile {
     team: string;
     role: string;
     email: string;
-    manager?:string;
+    manager?: string;
 }
 
 /**
@@ -27,10 +27,10 @@ export interface ProfileCardProps {
     onClose: () => void;
 }
 
- /**
- * Interface for individual person data displayed in the UI
- */
- export interface PersonData {
+/**
+* Interface for individual person data displayed in the UI
+*/
+export interface PersonData {
     id: string;
     name: string;
     role: string;
@@ -65,3 +65,47 @@ export interface ExamTag {
     name: string;
     color: string;
 }
+
+
+export interface StatsCardProps {
+    icon: React.ReactNode;
+    value: string | number;
+    label: string;
+}
+
+export interface Problem {
+    id: number;
+    title: string;
+    points: number;
+}
+
+export interface LeaderboardEntry {
+    rank: number;
+    name: string;
+    solved: string;
+    score: number;
+}
+
+export interface SprintData {
+    timeRemaining: string;
+    currentRank: number;
+    participants: number;
+    currentScore: number;
+    solvedProblems: string;
+    totalScore: number;
+    problems: Problem[];
+    leaderboard: LeaderboardEntry[];
+}
+
+export interface Question {
+    id: string;
+    number: number;
+    title: string;
+    topics: string[];
+    difficulty: 'Easy' | 'Medium' | 'Hard';
+  }
+  
+ export interface PracticeQuestionsData {
+    questions: Question[];
+  }
+  

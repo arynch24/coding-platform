@@ -3,73 +3,10 @@
 import React from 'react';
 import { Trophy, Users, Award } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
-interface StatsCardProps {
-  icon: React.ReactNode;
-  value: string | number;
-  label: string;
-}
-
-interface Problem {
-  id: number;
-  title: string;
-  points: number;
-}
-
-interface LeaderboardEntry {
-  rank: number;
-  name: string;
-  solved: string;
-  score: number;
-}
-
-interface SprintData {
-  timeRemaining: string;
-  currentRank: number;
-  participants: number;
-  currentScore: number;
-  solvedProblems: string;
-  totalScore: number;
-  problems: Problem[];
-  leaderboard: LeaderboardEntry[];
-}
-
-const StatsCard: React.FC<StatsCardProps> = ({ icon, value, label }) => (
-  <div className="bg-qc-dark rounded-lg p-4 text-white">
-    <div className="flex items-center justify-center mb-2">
-      {icon}
-    </div>
-    <div className="text-2xl font-bold text-center">{value}</div>
-    <div className="text-sm text-center text-slate-300">{label}</div>
-  </div>
-);
-
-const ProblemCard: React.FC<{ problem: Problem, handleQuestion: () => void }> = ({ problem, handleQuestion }) => {
-
-
-  return (
-    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-      onClick={handleQuestion}>
-      <div className="flex justify-between items-center">
-        <span className="text-gray-800 font-medium">{problem.id}. {problem.title}</span>
-        <span className="text-gray-600 font-semibold">{problem.points} points</span>
-      </div>
-    </div>
-  )
-};
-
-const LeaderboardRow: React.FC<{ entry: LeaderboardEntry }> = ({ entry }) => (
-  <div className="flex justify-between items-center py-3 px-4 border-b border-gray-200 last:border-b-0">
-    <div className="flex items-center gap-3">
-      <span className="text-gray-600 font-medium">{entry.rank}.</span>
-      <span className="text-gray-800">{entry.name}</span>
-    </div>
-    <div className="flex items-center gap-4">
-      <span className="text-gray-600">{entry.solved}</span>
-      <span className="font-semibold text-gray-800">{entry.score}</span>
-    </div>
-  </div>
-);
+import ContestProblemCard from '@/components/ContestProblemCard';
+import LeaderboardRow from '@/components/LeaderboardRow';
+import StatsCard from '@/components/StatsCard';
+import { SprintData } from '@/types/dashboard';
 
 const DataStructureSprint: React.FC = () => {
   // Mock data - this would come from API
@@ -109,7 +46,6 @@ const DataStructureSprint: React.FC = () => {
     // Handle question click logic here
     router.push('/question');
   }
-
 
   return (
     <div className="min-h-screen p-6">
@@ -161,7 +97,7 @@ const DataStructureSprint: React.FC = () => {
             <p className="text-gray-600 mb-6">Click on a problem to start solving</p>
             <div className="space-y-4">
               {sprintData.problems.map((problem) => (
-                <ProblemCard key={problem.id} problem={problem}
+                <ContestProblemCard key={problem.id} problem={problem}
                   handleQuestion={handleQuestion}
                 />
               ))}
