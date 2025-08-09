@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Play, Upload, Maximize2, RotateCcw, ChevronDown, Plus, GripVertical } from 'lucide-react';
+import { ArrowLeft, Play, Upload, Maximize2, RotateCcw, ChevronDown, Plus, GripVertical, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 // Monaco Editor types and globals
@@ -61,6 +61,40 @@ interface SubmissionResult {
   memory?: string;
 }
 
+// Submission interfaces
+interface Submission {
+  id: number;
+  status: 'Accepted' | 'Rejected' | 'Pending';
+  date: string;
+  language: string;
+  runtime: number;
+}
+
+// Mock submissions data
+const mockSubmissions: Submission[] = [
+  {
+    id: 3,
+    status: 'Accepted',
+    date: 'May 9, 2025',
+    language: 'Python3',
+    runtime: 1884
+  },
+  {
+    id: 2,
+    status: 'Accepted', 
+    date: 'May 9, 2025',
+    language: 'Python3',
+    runtime: 1987
+  },
+  {
+    id: 1,
+    status: 'Rejected',
+    date: 'May 9, 2025',
+    language: 'Python3',
+    runtime: 2000
+  }
+];
+
 const Tab: React.FC<TabProps> = ({ label, active, onClick, icon }) => (
   <button
     onClick={onClick}
@@ -92,6 +126,204 @@ const TestCaseTab: React.FC<TestCaseTabProps> = ({ testCase, active, onClick }) 
   </button>
 );
 
+// Status Badge Component
+interface StatusBadgeProps {
+  status: Submission['status'];
+}
+
+const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
+  const getStatusStyles = (status: string) => {
+    switch (status) {
+      case 'Accepted':
+        return 'text-green-600';
+      case 'Rejected':
+        return 'text-red-600';
+      case 'Pending':
+        return 'text-yellow-600';
+      default:
+        return 'text-gray-600';
+    }
+  };
+
+  return (
+    <div className="flex flex-col">
+      <span className={`font-semibold ${getStatusStyles(status)}`}>
+        {status}
+      </span>
+    </div>
+  );
+};
+
+// Language Tag Component
+interface LanguageTagProps {
+  language: string;
+}
+
+const LanguageTag: React.FC<LanguageTagProps> = ({ language }) => {
+  return (
+    <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
+      {language}
+    </span>
+  );
+};
+
+// Runtime Display Component
+interface RuntimeDisplayProps {
+  runtime: number;
+}
+
+const RuntimeDisplay: React.FC<RuntimeDisplayProps> = ({ runtime }) => {
+  return (
+    <div className="flex items-center gap-1 text-gray-600">
+      <Clock size={16} />
+      <span className="text-sm font-medium">{runtime} ms</span>
+    </div>
+  );
+};
+
+// Submission Row Component
+interface SubmissionRowProps {
+  submission: Submission;
+}
+
+const SubmissionRow: React.FC<SubmissionRowProps> = ({ submission }) => {
+  return (
+    <div className="flex items-center justify-between py-4 px-6 border-b border-gray-200 last:border-b-0">
+      {/* Status Section */}
+      <div className="flex items-start gap-3 min-w-0 flex-1">
+        <span className="text-gray-500 font-medium text-lg">
+          {submission.id}.
+        </span>
+        <div className="flex flex-col">
+          <StatusBadge status={submission.status} />
+          <span className="text-gray-500 text-sm mt-1">
+            {submission.date}
+          </span>
+        </div>
+      </div>
+
+      {/* Language Section */}
+      <div className="flex justify-center flex-1">
+        <LanguageTag language={submission.language} />
+      </div>
+
+      {/* Runtime Section */}
+      <div className="flex justify-end flex-1">
+        <RuntimeDisplay runtime={submission.runtime} />
+      </div>
+    </div>
+  );
+};
+
+// Header Component
+const SubmissionsHeader: React.FC = () => {
+  return (
+    <div className="flex items-center justify-between py-4 px-6 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
+      <div className="flex-1">
+        <span>Status</span>
+      </div>
+      <div className="flex justify-center flex-1">
+        <span>Language</span>
+      </div>
+      <div className="flex justify-end flex-1">
+        <span>Runtime</span>
+      </div>
+    </div>
+  );
+};
+
+// Submissions Status Component
+interface SubmissionsStatusProps {
+  submissions?: Submission[];
+  loading?: boolean;
+  error?: string;
+}
+
+const SubmissionsStatus: React.FC<SubmissionsStatusProps> = ({ 
+  submissions = mockSubmissions, 
+  loading = false,
+  error 
+}) => {
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <SubmissionsHeader />
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2 text-gray-600">Loading submissions...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <SubmissionsHeader />
+        <div className="flex items-center justify-center py-12">
+          <span className="text-red-600">Error: {error}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!submissions || submissions.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <SubmissionsHeader />
+        <div className="flex items-center justify-center py-12">
+          <span className="text-gray-500">No submissions found</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <SubmissionsHeader />
+      <div className="divide-y divide-gray-200">
+        {submissions.map((submission) => (
+          <SubmissionRow key={submission.id} submission={submission} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Custom hook for submissions
+const useSubmissions = () => {
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>('');
+
+  const fetchSubmissions = async () => {
+    setLoading(true);
+    try {
+      // Replace with actual API call
+      // const response = await fetch('/api/submissions');
+      // const data = await response.json();
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setSubmissions(mockSubmissions);
+    } catch (err) {
+      setError('Failed to fetch submissions');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addSubmission = (newSubmission: Submission) => {
+    setSubmissions(prev => [newSubmission, ...prev]);
+  };
+
+  React.useEffect(() => {
+    fetchSubmissions();
+  }, []);
+
+  return { submissions, loading, error, refetch: fetchSubmissions, addSubmission };
+};
+
 const CodingProblemPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('description');
   const [activeTestCase, setActiveTestCase] = useState(1);
@@ -108,10 +340,11 @@ const CodingProblemPage: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
+  const { submissions, loading: submissionsLoading, error: submissionsError, addSubmission } = useSubmissions();
+
   const handleBack = () => {
     router.back();
   }
-
 
   // Judge0 language mappings
   const languages: Language[] = [
@@ -362,13 +595,29 @@ public:
 
       // Mock response
       const mockResult: SubmissionResult = {
-        status: "Accepted",
+        status: Math.random() > 0.3 ? "Accepted" : "Rejected",
         output: activeTestCaseData?.output || "[0,1]",
-        time: "0.012s",
-        memory: "13.2 MB"
+        time: `${(Math.random() * 2 + 0.01).toFixed(3)}s`,
+        memory: `${(Math.random() * 10 + 10).toFixed(1)} MB`
       };
 
       setSubmissionResult(mockResult);
+
+      // If it's a submission (not just run), add to submissions list
+      if (!isRun) {
+        const newSubmission: Submission = {
+          id: submissions.length + 1,
+          status: mockResult.status === 'Accepted' ? 'Accepted' : 'Rejected',
+          date: new Date().toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric' 
+          }),
+          language: currentLanguage.label,
+          runtime: Math.floor(Math.random() * 1000 + 1500)
+        };
+        addSubmission(newSubmission);
+      }
     } catch (error) {
       setSubmissionResult({
         status: "Error",
@@ -492,49 +741,67 @@ public:
           </div>
 
           {/* Problem Content */}
-          <div className="p-6 overflow-y-auto" style={{ height: 'calc(100vh - 140px)' }}>
-            <div className="prose prose-sm max-w-none">
-              <p className="text-gray-700 leading-relaxed mb-6 whitespace-pre-line">
-                {problemData.description}
-              </p>
+          {activeTab === 'description' && (
+            <div className="p-6 overflow-y-auto" style={{ height: 'calc(100vh - 140px)' }}>
+              <div className="prose prose-sm max-w-none">
+                <p className="text-gray-700 leading-relaxed mb-6 whitespace-pre-line">
+                  {problemData.description}
+                </p>
 
-              {problemData.examples.map((example, index) => (
-                <div key={index} className="mb-6">
-                  <h4 className="font-semibold text-gray-900 mb-2">Example {index + 1}:</h4>
-                  <div className="bg-gray-50 p-3 rounded-lg font-mono text-sm">
-                    <div className="mb-1">
-                      <strong>Input:</strong> {example.input}
-                    </div>
-                    <div className="mb-1">
-                      <strong>Output:</strong> {example.output}
-                    </div>
-                    {example.explanation && (
-                      <div>
-                        <strong>Explanation:</strong> {example.explanation}
+                {problemData.examples.map((example, index) => (
+                  <div key={index} className="mb-6">
+                    <h4 className="font-semibold text-gray-900 mb-2">Example {index + 1}:</h4>
+                    <div className="bg-gray-50 p-3 rounded-lg font-mono text-sm">
+                      <div className="mb-1">
+                        <strong>Input:</strong> {example.input}
                       </div>
-                    )}
+                      <div className="mb-1">
+                        <strong>Output:</strong> {example.output}
+                      </div>
+                      {example.explanation && (
+                        <div>
+                          <strong>Explanation:</strong> {example.explanation}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
 
-              <div className="mb-6">
-                <h4 className="font-semibold text-gray-900 mb-2">Constraints:</h4>
-                <ul className="list-disc list-inside space-y-1 text-gray-700">
-                  {problemData.constraints.map((constraint, index) => (
-                    <li key={index} className="font-mono text-sm">{constraint}</li>
-                  ))}
-                </ul>
-              </div>
-
-              {problemData.followUp && (
                 <div className="mb-6">
-                  <p className="text-gray-700">
-                    <strong>•</strong> {problemData.followUp}
-                  </p>
+                  <h4 className="font-semibold text-gray-900 mb-2">Constraints:</h4>
+                  <ul className="list-disc list-inside space-y-1 text-gray-700">
+                    {problemData.constraints.map((constraint, index) => (
+                      <li key={index} className="font-mono text-sm">{constraint}</li>
+                    ))}
+                  </ul>
                 </div>
-              )}
+
+                {problemData.followUp && (
+                  <div className="mb-6">
+                    <p className="text-gray-700">
+                      <strong>•</strong> {problemData.followUp}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>)
+          }
+
+          {activeTab === 'submissions' && (
+            <div className="p-6 overflow-y-auto" style={{ height: 'calc(100vh - 140px)' }}>
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Submission History</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Track your submission attempts and results for this problem.
+                </p>
+              </div>
+              <SubmissionsStatus 
+                submissions={submissions}
+                loading={submissionsLoading}
+                error={submissionsError}
+              />
             </div>
-          </div>
+          )}
         </div>
 
         {/* Horizontal Resizer */}
@@ -555,35 +822,6 @@ public:
             className="bg-gray-200"
             style={{ height: `${editorHeight}%` }}
           >
-            {/* Code Header */}
-            <div className="px-6 py-4 bg-gray-100 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">Code</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button className="p-1 hover:bg-gray-200 rounded">
-                    <Maximize2 className="h-4 w-4 text-gray-600" />
-                  </button>
-                  <button
-                    onClick={() => handleLanguageChange(selectedLanguage)}
-                    className="p-1 hover:bg-gray-200 rounded"
-                  >
-                    <RotateCcw className="h-4 w-4 text-gray-600" />
-                  </button>
-                  <select
-                    value={selectedLanguage}
-                    onChange={(e) => handleLanguageChange(Number(e.target.value))}
-                    className="text-sm bg-white border border-gray-300 rounded px-3 py-1"
-                  >
-                    {languages.map(lang => (
-                      <option key={lang.id} value={lang.id}>{lang.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
             {/* Monaco Editor Container */}
             <div className="p-6 bg-gray-200" style={{ height: 'calc(100% - 70px)' }}>
               <div

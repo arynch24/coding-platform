@@ -27,7 +27,9 @@ const mockData: ExamDashboardData = {
       ],
       date: '8/8/2025',
       time: '09:26 AM',
-      duration: '120m'
+      duration: '120m',
+      live: true,
+      teacher: 'John Doe'
     },
     {
       id: '2',
@@ -40,7 +42,9 @@ const mockData: ExamDashboardData = {
       ],
       date: '9/8/2025',
       time: '09:26 AM',
-      duration: '120m'
+      duration: '120m',
+      live: false,
+      teacher: 'Jane Smith'
     },
     {
       id: '3',
@@ -53,7 +57,9 @@ const mockData: ExamDashboardData = {
       ],
       date: '8/8/2025',
       time: '09:26 AM',
-      duration: '120m'
+      duration: '120m',
+      live: false,
+      teacher: 'Alice Johnson'
     },
     {
       id: '4',
@@ -66,7 +72,9 @@ const mockData: ExamDashboardData = {
       ],
       date: '10/8/2025',
       time: '10:30 AM',
-      duration: '180m'
+      duration: '180m',
+      live: false,
+      teacher: 'Bob Brown'
     }
   ],
   pastExams: [
@@ -193,11 +201,13 @@ const ExamDashboard: React.FC = () => {
 
                 {/* Rows */}
                 {dashboardData.pastExams.map((exam, index) => (
-                  <PastExamRow
-                    key={exam.id}
-                    exam={exam}
-                    isLast={index === dashboardData.pastExams.length - 1}
-                  />
+                  <div onClick={handleJoin} className='cursor-pointer'>
+                    <PastExamRow
+                      key={exam.id}
+                      exam={exam}
+                      isLast={index === dashboardData.pastExams.length - 1}
+                    />
+                  </div>
                 ))}
               </div>
             </div>

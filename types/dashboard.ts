@@ -60,7 +60,10 @@ export interface UpcomingExam {
     date: string;
     time: string;
     duration: string;
+    live:boolean
+    teacher: string;
 }
+
 export interface ExamTag {
     name: string;
     color: string;
@@ -77,6 +80,7 @@ export interface Problem {
     id: number;
     title: string;
     points: number;
+    isSolved: boolean;
 }
 
 export interface LeaderboardEntry {
