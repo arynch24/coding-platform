@@ -1,36 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, CheckCircle } from 'lucide-react';
 import Loader from '@/components/Loader';
 import Error from '@/components/ErrorBox';
 import { useRouter } from 'next/navigation';
-// Types
-interface ExamTag {
-  name: string;
-  color: string;
-}
-
-interface UpcomingExam {
-  id: string;
-  title: string;
-  description: string;
-  tags: ExamTag[];
-  date: string;
-  time: string;
-  duration: string;
-}
-
-interface PastExam {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  rank: number;
-  solved: string;
-  totalProblems: number;
-}
+import UpcomingExamCard from '@/components/UpcomingExamCard';
+import PastExamRow from '@/components/PastExamRow';
+import { UpcomingExam, PastExam } from '@/types/dashboard';
 
 interface ExamDashboardData {
   upcomingExams: UpcomingExam[];
@@ -137,80 +113,6 @@ const mockData: ExamDashboardData = {
   ]
 };
 
-// Reusable Components
-const ExamTag: React.FC<{ tag: ExamTag }> = ({ tag }) => (
-  <span className={`px-3 py-1 rounded-full text-xs font-medium ${tag.color}`}>
-    {tag.name}
-  </span>
-);
-
-const UpcomingExamCard: React.FC<{ exam: UpcomingExam, handleView: () => void }> = ({ exam, handleView }) => (
-  <div className="bg-qc-dark rounded-2xl p-5 text-white min-w-[300px] max-w-[320px] flex-shrink-0">
-    <div className="mb-5">
-      <h3 className="text-lg font-semibold mb-2">{exam.title}</h3>
-      <p className="text-zinc-100 text-sm leading-relaxed">{exam.description}</p>
-    </div>
-
-    <div className="flex flex-wrap gap-2 mb-5">
-      {exam.tags.map((tag, index) => (
-        <ExamTag key={index} tag={tag} />
-      ))}
-    </div>
-
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3 text-xs text-zinc-100">
-        <div className="flex items-center gap-1">
-          <Calendar size={14} />
-          <span>{exam.date} {exam.time}</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <Clock size={14} />
-          <span>{exam.duration}</span>
-        </div>
-      </div>
-      <button className="bg-white text-slate-800 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-zinc-200 transition-colors cursor-pointer"
-        onClick={handleView}
-      >
-        View
-      </button>
-    </div>
-  </div>
-);
-
-const PastExamRow: React.FC<{ exam: PastExam; isLast: boolean }> = ({ exam, isLast }) => {
-  const solvedCount = parseInt(exam.solved.split('/')[0]);
-  const totalCount = parseInt(exam.solved.split('/')[1]);
-  const solvedPercentage = (solvedCount / totalCount) * 100;
-
-  return (
-    <div className={`grid grid-cols-4 gap-4 py-4 px-4 ${!isLast ? 'border-b border-gray-200' : ''}`}>
-      <div>
-        <h4 className="font-semibold text-qc-primary mb-1 text-sm">{exam.title}</h4>
-        <p className="text-xs text-zinc-600">{exam.description}</p>
-      </div>
-
-      <div className="text-qc-primary text-sm">
-        <p>{exam.date} {exam.time}</p>
-      </div>
-
-      <div className="text-center">
-        <span className="inline-flex items-center justify-center w-10 h-6 bg-gray-100 text-gray-800 rounded text-xs font-semibold">
-          #{exam.rank}
-        </span>
-      </div>
-
-      <div className="text-center">
-        <div className="inline-flex items-center justify-center px-3 py-1 bg-gray-100 rounded text-xs">
-          <span className="font-semibold text-qc-primary">{exam.solved}</span>
-          {solvedPercentage === 100 && (
-            <CheckCircle className="ml-1 text-green-500" size={12} />
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // Main Dashboard Component
 const ExamDashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<ExamDashboardData | null>(null);
@@ -241,8 +143,8 @@ const ExamDashboard: React.FC = () => {
     }
   };
 
-  const handleView = () => {
-    router.push('/teacher/contest');
+  const handleJoin = () => {
+    router.push('/coding/contest');
   }
 
   useEffect(() => {
@@ -271,7 +173,7 @@ const ExamDashboard: React.FC = () => {
               <div className="flex gap-4 overflow-x-auto pb-4 w-6xl scrollbar-hide">
                 {dashboardData.upcomingExams.map((exam) => (
                   <UpcomingExamCard key={exam.id} exam={exam}
-                    handleView={handleView}
+                    handleJoin={handleJoin}
                   />
                 ))}
               </div>
