@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, ChevronDown, Menu } from 'lucide-react';
-// import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 // Types
 interface Question {
@@ -342,9 +342,12 @@ const PracticeQuestions: React.FC = () => {
     });
   }, [questionsData, searchTerm, difficultyFilter, topicFilter]);
 
+  const router = useRouter(); 
+
   const handleQuestionClick = (questionId: string) => {
     // router.push(`/practice/${questionId}`);
-    console.log(`Navigate to question ${questionId}`);
+    router.push(`/question`);
+    // console.log(`Navigate to question ${questionId}`);
   };
 
   if (isLoading) {

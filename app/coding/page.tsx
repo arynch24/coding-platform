@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, CheckCircle } from 'lucide-react';
 import Loader from '@/components/Loader';
 import Error from '@/components/ErrorBox';
-
+import { useRouter } from 'next/navigation';
 // Types
 interface ExamTag {
   name: string;
@@ -144,7 +144,7 @@ const ExamTag: React.FC<{ tag: ExamTag }> = ({ tag }) => (
   </span>
 );
 
-const UpcomingExamCard: React.FC<{ exam: UpcomingExam }> = ({ exam }) => (
+const UpcomingExamCard: React.FC<{ exam: UpcomingExam, handleJoin: () => void }> = ({ exam, handleJoin }) => (
   <div className="bg-qc-dark rounded-2xl p-5 text-white min-w-[300px] max-w-[320px] flex-shrink-0">
     <div className="mb-5">
       <h3 className="text-lg font-semibold mb-2">{exam.title}</h3>
@@ -168,7 +168,9 @@ const UpcomingExamCard: React.FC<{ exam: UpcomingExam }> = ({ exam }) => (
           <span>{exam.duration}</span>
         </div>
       </div>
-      <button className="bg-white text-slate-800 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-zinc-200 transition-colors cursor-pointer">
+      <button className="bg-white text-slate-800 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-zinc-200 transition-colors cursor-pointer"
+        onClick={handleJoin}
+      >
         Join
       </button>
     </div>
@@ -214,6 +216,7 @@ const ExamDashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<ExamDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const router = useRouter();
 
   // Simulate API call
   const fetchDashboardData = async (): Promise<void> => {
@@ -237,6 +240,10 @@ const ExamDashboard: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  const handleJoin = () => {
+    router.push('/coding/contest');
+  }
 
   useEffect(() => {
     fetchDashboardData();
@@ -263,7 +270,9 @@ const ExamDashboard: React.FC = () => {
               <h2 className="text-2xl font-bold  text-qc-primary mb-6">Upcoming exam</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 w-6xl scrollbar-hide">
                 {dashboardData.upcomingExams.map((exam) => (
-                  <UpcomingExamCard key={exam.id} exam={exam} />
+                  <UpcomingExamCard key={exam.id} exam={exam}
+                    handleJoin={handleJoin}
+                  />
                 ))}
               </div>
             </div>

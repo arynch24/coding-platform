@@ -20,7 +20,7 @@ const DashboardLayout = ({ children }: Readonly<{ children: React.ReactNode; }>)
                 return 'Help';
             default:
                 // Handle dynamic routes or fallback
-                return 'Auditor Dashboard';
+                return '';
         }
     };
 
