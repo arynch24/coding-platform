@@ -108,6 +108,7 @@ export interface Question {
     title: string;
     topics: string[];
     difficulty: 'Easy' | 'Medium' | 'Hard';
+    isSolved?: boolean;
 }
 
 export interface PracticeQuestionsData {

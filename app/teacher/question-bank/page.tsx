@@ -8,6 +8,9 @@ import FilterDropdown from '@/components/FilterDropdown';
 import SearchBar from '@/components/SearchBar';
 import QuestionCard from '@/components/QuestionCard';
 import MobileFilters from '@/components/MobileFilters';
+import Error from '@/components/ErrorBox';
+import Loader from '@/components/Loader';
+import { Plus } from 'lucide-react';
 
 // Mock data
 const mockData: PracticeQuestionsData = {
@@ -174,56 +177,73 @@ const PracticeQuestions: React.FC = () => {
     // console.log(`Navigate to question ${questionId}`);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-800"></div>
-        <p className="mt-4 text-gray-600">Loading Practice Questions</p>
-      </div>
-    );
+  const handleDelete = (questionId: string) => {
+    // Handle question deletion logic here
+    console.log(`Deleting question with ID: ${questionId}`);
+    // Optionally, you can refetch the questions data after deletion
+    fetchQuestionsData();
   }
 
+  const handleEdit = (questionId: string) => {
+    // Handle question edit logic here
+    console.log(`Editing question with ID: ${questionId}`);
+    // Optionally, you can redirect to an edit page or open a modal
+    // router.push(`/question/edit/${questionId}`);
+  };
+
+  const handleCreateQuestion = () => {
+    // Redirect to question creation page
+    router.push('/teacher/question/create');
+  }
+
+  // Show loading spinner while fetching data
+  if (isLoading) {
+    return <Loader text="Loading Exam Dashboard" />;
+  }
+
+  // Show error message if there's an error
   if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <p className="text-gray-600 mb-4">{error}</p>
-        <button
-          onClick={fetchQuestionsData}
-          className="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-qc-dark transition-colors"
-        >
-          Try Again
-        </button>
-      </div>
-    );
+    return <Error message={error} onRetry={fetchQuestionsData} />;
   }
 
   return (
     <div className="h-full">
       <div className="h-full px-4 py-6 overflow-y-auto">
         {/* Header with Search and Filters */}
-        <div className="mb-6">
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-            <SearchBar
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-            />
-
-            {/* Desktop Filters */}
-            <div className="hidden md:flex items-center gap-3">
-              <FilterDropdown
-                options={difficultyOptions}
-                selected={difficultyFilter}
-                onSelect={setDifficultyFilter}
-                placeholder="All difficulties"
-              />
-
-              <FilterDropdown
-                options={topicOptions}
-                selected={topicFilter}
-                onSelect={setTopicFilter}
-                placeholder="All Topics"
+        <div className="mb-6 w-full">
+          <div className="w-full flex flex-col md:flex-row gap-4 items-start md:items-center">
+            <div className='w-full md:w-1/2'>
+              <SearchBar
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
               />
             </div>
+
+            {/* Desktop Filters */}
+            <div className="w-1/3 hidden md:flex md:justify-between items-center ">
+              <div className='flex gap-4'>
+                <FilterDropdown
+                  options={difficultyOptions}
+                  selected={difficultyFilter}
+                  onSelect={setDifficultyFilter}
+                  placeholder="All difficulties"
+                />
+
+                <FilterDropdown
+                  options={topicOptions}
+                  selected={topicFilter}
+                  onSelect={setTopicFilter}
+                  placeholder="All Topics"
+                />
+              </div>
+            </div>
+
+            <button
+              className='md:w-1/5 bg-qc-dark/95 hover:bg-qc-dark text-white px-4 py-2 rounded-lg hover:bg-qc-primary-dark transition-colors mr-6 cursor-pointer'
+              onClick={handleCreateQuestion}>
+              <Plus className="inline mr-2" />
+              Add Question
+            </button>
 
             {/* Mobile Filter Toggle */}
             <button
@@ -251,6 +271,9 @@ const PracticeQuestions: React.FC = () => {
                 key={question.id}
                 question={question}
                 onClick={handleQuestionClick}
+                role="teacher"
+                handleDelete={handleDelete}
+                handleEdit={handleEdit}
               />
             ))
           )}

@@ -19,70 +19,80 @@ const mockData: PracticeQuestionsData = {
       number: 1,
       title: 'Two Sum Variation',
       topics: ['Array', 'Stack'],
-      difficulty: 'Easy'
+      difficulty: 'Easy',
+      isSolved: false
     },
     {
       id: '2',
       number: 2,
       title: 'Binary Search Tree Insert',
       topics: ['Tree', 'BST'],
-      difficulty: 'Medium'
+      difficulty: 'Medium',
+      isSolved: false
     },
     {
       id: '3',
       number: 3,
       title: 'Maximum Subarray Sum',
       topics: ['Array', 'Dynamic Programming'],
-      difficulty: 'Medium'
+      difficulty: 'Medium',
+      isSolved: false
     },
     {
       id: '4',
       number: 4,
       title: 'Valid Parentheses',
       topics: ['Stack', 'String'],
-      difficulty: 'Easy'
+      difficulty: 'Easy',
+      isSolved: true
     },
     {
       id: '5',
       number: 5,
       title: 'Merge Intervals',
       topics: ['Array', 'Sorting'],
-      difficulty: 'Medium'
+      difficulty: 'Medium',
+      isSolved: true
     },
     {
       id: '6',
       number: 6,
       title: 'Longest Common Subsequence',
       topics: ['Dynamic Programming', 'String'],
-      difficulty: 'Hard'
+      difficulty: 'Hard',
+      isSolved: false
     },
     {
       id: '7',
       number: 7,
       title: 'Binary Tree Level Order',
       topics: ['Tree', 'BFS'],
-      difficulty: 'Medium'
+      difficulty: 'Medium',
+      isSolved: false
     },
     {
       id: '8',
       number: 8,
       title: 'Graph Cycle Detection',
       topics: ['Graph', 'DFS'],
-      difficulty: 'Hard'
+      difficulty: 'Hard',
+      isSolved: false
     },
     {
       id: '9',
       number: 9,
       title: 'Heap Sort Implementation',
       topics: ['Heap', 'Sorting'],
-      difficulty: 'Hard'
+      difficulty: 'Hard',
+      isSolved: false
     },
     {
       id: '10',
       number: 10,
       title: 'Palindrome Check',
       topics: ['String', 'Two Pointers'],
-      difficulty: 'Easy'
+      difficulty: 'Easy',
+      isSolved: true
     }
   ]
 };
@@ -240,6 +250,7 @@ const PracticeQuestions: React.FC = () => {
                 key={question.id}
                 question={question}
                 onClick={handleQuestionClick}
+                role="student"
               />
             ))
           )}

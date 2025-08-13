@@ -17,7 +17,6 @@ const PastExamRow: React.FC<{ exam: PastExam; isLast: boolean, role: string, han
             action: () => handleDelete,
             icon: <Trash className="text-red-500" size={16}/>,
         },
-
     ];
 
 

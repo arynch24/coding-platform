@@ -18,12 +18,12 @@ const DataStructureSprint: React.FC = () => {
     solvedProblems: "5/9",
     totalScore: 300,
     problems: [
-      { id: 1, title: "Palindrome Numbers",isSolved:true, points: 50 },
-      { id: 2, title: "Jump Game I",isSolved:true, points: 50 },
-      { id: 3, title: "Reverse Array",isSolved:false, points: 50 },
-      { id: 4, title: "Fruits Into Basket III",isSolved:false, points: 50 },
-      { id: 5, title: "Longest Palindrome String",isSolved:false, points: 50 },
-      { id: 6, title: "Median Of Two Sorted Array",isSolved:false, points: 50 },
+      { id: 1, title: "Palindrome Numbers", isSolved: true, points: 50 },
+      { id: 2, title: "Jump Game I", isSolved: true, points: 50 },
+      { id: 3, title: "Reverse Array", isSolved: false, points: 50 },
+      { id: 4, title: "Fruits Into Basket III", isSolved: false, points: 50 },
+      { id: 5, title: "Longest Palindrome String", isSolved: false, points: 50 },
+      { id: 6, title: "Median Of Two Sorted Array", isSolved: false, points: 50 },
     ],
     leaderboard: [
       { rank: 1, name: "Ram Ramesh", solved: "5/6", score: 250 },
