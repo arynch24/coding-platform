@@ -2,7 +2,7 @@ import ExamTag from "./ExamTag";
 import { Calendar, Clock, User } from "lucide-react";
 import { UpcomingExam } from "@/types/dashboard";
 
-const UpcomingExamCard: React.FC<{ exam: UpcomingExam, handleJoin: () => void }> = ({ exam, handleJoin }) => (
+const UpcomingExamCard: React.FC<{ exam: UpcomingExam, handleJoin?: () => void, handleView?: () => void, role: string }> = ({ exam, handleJoin, handleView, role }) => (
     <div className="bg-qc-dark rounded-2xl p-5 text-white min-w-[300px] w-[380px] flex-shrink-0">
         <div className="mb-5">
             <div className="flex justify-between items-center">
@@ -34,15 +34,17 @@ const UpcomingExamCard: React.FC<{ exam: UpcomingExam, handleJoin: () => void }>
                     <Calendar size={14} />
                     <span>{exam.date} {exam.time}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                    <User size={14} />
-                    <span>By {exam.teacher}</span>
-                </div>
+                {role == "student" && (
+                    <div className="flex items-center gap-1">
+                        <User size={14} />
+                        <span>By {exam.teacher}</span>
+                    </div>
+                )}
             </div>
             <button className="bg-white text-slate-800 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-zinc-200 transition-colors cursor-pointer"
-                onClick={handleJoin}
+                onClick={role == "teacher" ? handleView : handleJoin}
             >
-                Join
+                {role == "teacher" ? "View" : "Join"}
             </button>
         </div>
     </div>

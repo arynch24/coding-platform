@@ -50,6 +50,7 @@ export interface PastExam {
     rank: number;
     solved: string;
     totalProblems: number;
+    totalParticipants: number;
 }
 
 export interface UpcomingExam {
@@ -60,8 +61,8 @@ export interface UpcomingExam {
     date: string;
     time: string;
     duration: string;
-    live:boolean
-    teacher: string;
+    live: boolean
+    teacher?: string;
 }
 
 export interface ExamTag {
@@ -107,9 +108,17 @@ export interface Question {
     title: string;
     topics: string[];
     difficulty: 'Easy' | 'Medium' | 'Hard';
-  }
-  
- export interface PracticeQuestionsData {
+}
+
+export interface PracticeQuestionsData {
     questions: Question[];
-  }
-  
+}
+
+export interface MenuItem {
+    id: string;
+    label: string;
+    action: () => void;
+    icon?: React.ReactNode;
+    disabled?: boolean;
+    variant?: 'default' | 'danger';
+}

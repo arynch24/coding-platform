@@ -1,10 +1,25 @@
-import { CheckCircle } from 'lucide-react';
-import {PastExam} from '@/types/dashboard';
+import { PastExam, MenuItem } from '@/types/dashboard';
+import DropdownMenu from './MenuItem';
+import { Eye ,Trash} from 'lucide-react';
 
-const PastExamRow: React.FC<{ exam: PastExam; isLast: boolean }> = ({ exam, isLast }) => {
-    const solvedCount = parseInt(exam.solved.split('/')[0]);
-    const totalCount = parseInt(exam.solved.split('/')[1]);
-    const solvedPercentage = (solvedCount / totalCount) * 100;
+const PastExamRow: React.FC<{ exam: PastExam; isLast: boolean, role: string, handleView?: () => void, handleDelete?: () => void }> = ({ exam, isLast, role, handleView, handleDelete }) => {
+
+    const menuItems: MenuItem[] = [
+        {
+            id: 'view',
+            label: 'View',
+            action: () => handleView,
+            icon: <Eye className="text-blue-500"  size={16}/>
+        },
+        {
+            id: 'delete',
+            label: 'Delete',
+            action: () => handleDelete,
+            icon: <Trash className="text-red-500" size={16}/>,
+        },
+
+    ];
+
 
     return (
         <div className={`grid grid-cols-4 gap-4 py-4 px-4 ${!isLast ? 'border-b border-gray-200' : ''}`}>
@@ -19,17 +34,20 @@ const PastExamRow: React.FC<{ exam: PastExam; isLast: boolean }> = ({ exam, isLa
 
             <div className="text-center">
                 <span className="inline-flex items-center justify-center w-10 h-6 bg-gray-100 text-gray-800 rounded text-xs font-semibold">
-                    #{exam.rank}
+                    {role == "student" ? "#" + exam.rank : exam.totalParticipants}
                 </span>
             </div>
 
             <div className="text-center">
-                <div className="inline-flex items-center justify-center px-3 py-1 bg-gray-100 rounded text-xs">
-                    <span className="font-semibold text-qc-primary">{exam.solved}</span>
-                    {solvedPercentage === 100 && (
-                        <CheckCircle className="ml-1 text-green-500" size={12} />
-                    )}
-                </div>
+                {
+                    role == "student" ?
+                        <div className="inline-flex items-center justify-center px-3 py-1 bg-gray-100 rounded text-xs">
+                            <span className="font-semibold text-qc-primary">{exam.solved}</span>
+                        </div>
+                        : <div>
+                            <DropdownMenu items={menuItems} />
+                        </div>
+                }
             </div>
         </div>
     );

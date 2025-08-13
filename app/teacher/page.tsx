@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import UpcomingExamCard from '@/components/UpcomingExamCard';
 import PastExamRow from '@/components/PastExamRow';
 import { UpcomingExam, PastExam } from '@/types/dashboard';
+import { Plus } from 'lucide-react';
 
 interface ExamDashboardData {
   upcomingExams: UpcomingExam[];
@@ -29,7 +30,6 @@ const mockData: ExamDashboardData = {
       time: '09:26 AM',
       duration: '120m',
       live: true,
-      teacher: 'John Doe'
     },
     {
       id: '2',
@@ -44,7 +44,6 @@ const mockData: ExamDashboardData = {
       time: '09:26 AM',
       duration: '120m',
       live: false,
-      teacher: 'Jane Smith'
     },
     {
       id: '3',
@@ -59,7 +58,6 @@ const mockData: ExamDashboardData = {
       time: '09:26 AM',
       duration: '120m',
       live: false,
-      teacher: 'Alice Johnson'
     },
     {
       id: '4',
@@ -74,7 +72,6 @@ const mockData: ExamDashboardData = {
       time: '10:30 AM',
       duration: '180m',
       live: false,
-      teacher: 'Bob Brown'
     }
   ],
   pastExams: [
@@ -86,7 +83,8 @@ const mockData: ExamDashboardData = {
       time: '09:42 AM',
       rank: 42,
       solved: '3/4',
-      totalProblems: 4
+      totalProblems: 4,
+      totalParticipants: 100
     },
     {
       id: '2',
@@ -96,7 +94,8 @@ const mockData: ExamDashboardData = {
       time: '09:42 AM',
       rank: 18,
       solved: '3/4',
-      totalProblems: 4
+      totalProblems: 4,
+      totalParticipants: 80
     },
     {
       id: '3',
@@ -106,7 +105,8 @@ const mockData: ExamDashboardData = {
       time: '09:42 AM',
       rank: 42,
       solved: '3/4',
-      totalProblems: 4
+      totalProblems: 4,
+      totalParticipants: 90
     },
     {
       id: '4',
@@ -116,7 +116,8 @@ const mockData: ExamDashboardData = {
       time: '09:42 AM',
       rank: 42,
       solved: '3/4',
-      totalProblems: 4
+      totalProblems: 4,
+      totalParticipants: 110
     }
   ]
 };
@@ -151,7 +152,7 @@ const ExamDashboard: React.FC = () => {
     }
   };
 
-  const handleJoin = () => {
+  const handleView = () => {
     router.push('/coding/contest');
   }
 
@@ -159,6 +160,16 @@ const ExamDashboard: React.FC = () => {
     fetchDashboardData();
   }, []);
 
+  const handleCreateExam = () => {
+    router.push('/teacher/exam/create');
+  }
+
+  const handleDelete = () => {
+    // Handle exam deletion logic here
+    console.log(`Deleting exam with ID: `);
+    // Optionally, you can refetch the dashboard data after deletion
+    fetchDashboardData();
+  }
 
   // Show loading spinner while fetching data
   if (isLoading) {
@@ -177,11 +188,22 @@ const ExamDashboard: React.FC = () => {
           <>
             {/* Upcoming Exams Section */}
             <div className="mb-8 ">
-              <h2 className="text-2xl font-bold  text-qc-primary mb-6">Upcoming exam</h2>
+              <div className='flex justify-between mb-6'>
+                <h2 className="text-2xl font-bold  text-qc-primary mb-6">Upcoming exam</h2>
+                <button
+                  className='bg-qc-dark/95 hover:bg-qc-dark text-white px-4 py-2 rounded-lg hover:bg-qc-primary-dark transition-colors mr-6 cursor-pointer'
+                  onClick={handleCreateExam}>
+                  <Plus className="inline mr-2" />
+                  Create Exam
+                </button>
+              </div>
               <div className="flex gap-4 overflow-x-auto pb-4 w-6xl scrollbar-hide">
                 {dashboardData.upcomingExams.map((exam) => (
-                  <UpcomingExamCard key={exam.id} exam={exam}
-                    handleJoin={handleJoin}
+                  <UpcomingExamCard
+                    key={exam.id}
+                    exam={exam}
+                    handleView={handleView}
+                    role="teacher"
                   />
                 ))}
               </div>
@@ -195,8 +217,8 @@ const ExamDashboard: React.FC = () => {
                 <div className="grid grid-cols-4 gap-4 py-3 px-4 bg-gray-100 border-b border-gray-200">
                   <div className="font-semibold text-qc-primary text-sm">Exam</div>
                   <div className="font-semibold text-qc-primary text-sm">Date & timing</div>
-                  <div className="font-semibold text-qc-primary text-center text-sm">Rank</div>
-                  <div className="font-semibold text-qc-primary text-center text-sm">Solved</div>
+                  <div className="font-semibold text-qc-primary text-center text-sm">Participants</div>
+                  <div className="font-semibold text-qc-primary text-center text-sm">Action</div>
                 </div>
 
                 {/* Rows */}
@@ -205,6 +227,9 @@ const ExamDashboard: React.FC = () => {
                     key={exam.id}
                     exam={exam}
                     isLast={index === dashboardData.pastExams.length - 1}
+                    role="teacher"
+                    handleView={handleView}
+                    handleDelete={handleDelete}
                   />
                 ))}
               </div>

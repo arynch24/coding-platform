@@ -86,7 +86,8 @@ const mockData: ExamDashboardData = {
       time: '09:42 AM',
       rank: 42,
       solved: '3/4',
-      totalProblems: 4
+      totalProblems: 4,
+      totalParticipants: 100
     },
     {
       id: '2',
@@ -96,7 +97,8 @@ const mockData: ExamDashboardData = {
       time: '09:42 AM',
       rank: 18,
       solved: '3/4',
-      totalProblems: 4
+      totalProblems: 4,
+      totalParticipants: 80
     },
     {
       id: '3',
@@ -106,7 +108,8 @@ const mockData: ExamDashboardData = {
       time: '09:42 AM',
       rank: 42,
       solved: '3/4',
-      totalProblems: 4
+      totalProblems: 4,
+      totalParticipants: 90
     },
     {
       id: '4',
@@ -116,7 +119,8 @@ const mockData: ExamDashboardData = {
       time: '09:42 AM',
       rank: 42,
       solved: '3/4',
-      totalProblems: 4
+      totalProblems: 4,
+      totalParticipants: 95
     }
   ]
 };
@@ -180,8 +184,11 @@ const ExamDashboard: React.FC = () => {
               <h2 className="text-2xl font-bold  text-qc-primary mb-6">Upcoming exam</h2>
               <div className="flex gap-4 overflow-x-auto pb-4 w-6xl scrollbar-hide">
                 {dashboardData.upcomingExams.map((exam) => (
-                  <UpcomingExamCard key={exam.id} exam={exam}
+                  <UpcomingExamCard
+                    key={exam.id}
+                    exam={exam}
                     handleJoin={handleJoin}
+                    role="student"
                   />
                 ))}
               </div>
@@ -206,6 +213,7 @@ const ExamDashboard: React.FC = () => {
                       key={exam.id}
                       exam={exam}
                       isLast={index === dashboardData.pastExams.length - 1}
+                      role="student"
                     />
                   </div>
                 ))}
