@@ -153,7 +153,7 @@ const ExamDashboard: React.FC = () => {
   };
 
   const handleView = () => {
-    router.push('/coding/contest');
+    router.push('/teacher/contest');
   }
 
   useEffect(() => {

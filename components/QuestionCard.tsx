@@ -1,8 +1,7 @@
 import { Question, MenuItem } from '@/types/dashboard';
-import DifficultyBadge from './DifficultyBadge';
+import Badge from './Badge';
 import DropdownMenu from './MenuItem';
 import { Eye, Trash, Check } from 'lucide-react';
-
 
 const QuestionCard: React.FC<{
   question: Question;
@@ -27,8 +26,17 @@ const QuestionCard: React.FC<{
     },
   ];
 
-  return (<div
+  const getDifficultyVariant = (diff: string) => {
+    switch (diff.toLowerCase()) {
+      case 'easy': return 'easy';
+      case 'medium': return 'medium';
+      case 'hard': return 'hard';
+      default: return 'default';
+    }
+  };
 
+  return (
+  <div
     className="bg-qc-light/10 rounded-xl p-4 hover:bg-qc-light/20 transition-colors  group"
   >
     <div className="flex items-center justify-between">
@@ -44,7 +52,9 @@ const QuestionCard: React.FC<{
         <div className="text-zinc-600 text-sm">
           {question.topics.join(', ')}
         </div>
-        <DifficultyBadge difficulty={question.difficulty} />
+        <Badge variant={getDifficultyVariant(question.difficulty)}>
+          {question.difficulty}
+        </Badge>
         {role === 'teacher' &&
           <DropdownMenu items={menuItems} />
         }
