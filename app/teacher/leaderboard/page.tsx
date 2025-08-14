@@ -89,7 +89,7 @@ const ExamManagementPage: React.FC = () => {
 
     // Show loading spinner while fetching data
     if (isLoading) {
-        return <Loader text="Loading Exam Dashboard" />;
+        return <Loader text="Loading Leaderboard" />;
     }
 
     // Show error message if there's an error
