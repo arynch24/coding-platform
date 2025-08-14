@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
     FileCode2,
     Trophy,
-    HelpCircle,
+    Users,
     LogOut,
     Menu,
     X
@@ -62,7 +62,14 @@ const QCAuditSidebar: React.FC = () => {
     // Navigation items configuration
     const navigationItems: NavItem[] = [
         {
-            id: 'dashboard',
+            id: 'leaderboard',
+            label: 'Leaderboard',
+            icon: <Users size={20} />,
+            navigation: '/coding/leaderboard',
+            hasNestedRoutes: true
+        },
+        {
+            id: 'exam',
             label: 'Exam',
             icon: <Trophy size={20} />,
             navigation: '/coding'

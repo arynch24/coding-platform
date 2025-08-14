@@ -70,13 +70,6 @@ export interface ExamTag {
     color: string;
 }
 
-
-export interface StatsCardProps {
-    icon: React.ReactNode;
-    value: string | number;
-    label: string;
-}
-
 export interface Problem {
     id: number;
     title: string;
@@ -122,4 +115,18 @@ export interface MenuItem {
     icon?: React.ReactNode;
     disabled?: boolean;
     variant?: 'default' | 'danger';
+}
+
+export interface ExamResult {
+    id: string;
+    examName: string;
+    subject: string;
+    dateTime: string;
+    score: number;
+    rank: number;
+    finalScore: number;
+    finalRank: number;
+    solved: number;
+    total: number;
+    feedback: string;
 }

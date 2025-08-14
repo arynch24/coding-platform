@@ -12,12 +12,12 @@ const DashboardLayout = ({ children }: Readonly<{ children: React.ReactNode; }>)
     // Function to get header text based on current path
     const getHeaderText = (path: string): string => {
         switch (path) {
+            case '/coding/leaderboard':
+                return 'Leaderboard';
             case '/coding':
                 return 'Exam';
             case '/coding/practice':
                 return 'Question Bank';
-            case '/coding/help':
-                return 'Help';
             default:
                 // Handle dynamic routes or fallback
                 return '';
