@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
     FileCode2,
     Trophy,
-    HelpCircle,
+    Users,
     LogOut,
     Menu,
     X
@@ -72,7 +72,14 @@ const QCAuditSidebar: React.FC = () => {
             label: 'Question Bank',
             icon: <FileCode2 size={20} />,
             navigation: '/teacher/question-bank',
-        }
+        },
+        {
+            id: 'leaderboard',
+            label: 'Leaderboard',
+            icon: <Users size={20} />,
+            navigation: '/teacher/leaderboard',
+            hasNestedRoutes: true
+        },
     ];
 
     /**

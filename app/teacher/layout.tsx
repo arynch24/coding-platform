@@ -16,8 +16,8 @@ const DashboardLayout = ({ children }: Readonly<{ children: React.ReactNode; }>)
                 return 'Exam Management';
             case '/teacher/question-bank':
                 return 'Question Bank';
-            case '/teacher/help':
-                return 'Help';
+            case '/teacher/leaderboard':
+                return 'Leaderboard';
             default:
                 // Handle dynamic routes or fallback
                 return '';

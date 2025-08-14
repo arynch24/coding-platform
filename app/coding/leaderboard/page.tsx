@@ -6,7 +6,7 @@ import { Trophy, FileText, CheckCircle } from 'lucide-react';
 import StatCard from '@/components/StatCard';
 import FeedbackModal from '@/components/FeedBackModal';
 import FilterDropdown from '@/components/FilterDropdown';
-import ExamTable from '@/components/LeaderboardTable';
+import ExamTable from '@/components/student/LeaderboardTable';
 import { ExamResult } from '@/types/dashboard';
 import Loader from '@/components/Loader';
 import Error from '@/components/ErrorBox';

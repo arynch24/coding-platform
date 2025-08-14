@@ -130,3 +130,27 @@ export interface ExamResult {
     total: number;
     feedback: string;
 }
+
+export interface Exam {
+    id: string;
+    title: string;
+    description: string;
+    dateTime: string;
+    participants: number;
+    status: 'Published' | 'Unpublished';
+}
+
+export interface Student {
+    id: string;
+    rank: number;
+    name: string;
+    email: string;
+    obtainedScore: number;
+    solvedQuestions: string;
+}
+
+export interface ActionData {
+    type: string;
+    reason: string;
+    notes?: string;
+}
