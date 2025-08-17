@@ -154,3 +154,12 @@ export interface ActionData {
     reason: string;
     notes?: string;
 }
+
+export interface TestCase {
+    id: string;
+    name: string;
+    input: string;
+    expectedOutput: string;
+    points: number;
+    type: 'sample' | 'regular';
+}

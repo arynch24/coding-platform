@@ -193,7 +193,7 @@ const PracticeQuestions: React.FC = () => {
 
   const handleCreateQuestion = () => {
     // Redirect to question creation page
-    router.push('/teacher/question/create');
+    router.push('/teacher/question-bank/create');
   }
 
   // Show loading spinner while fetching data
