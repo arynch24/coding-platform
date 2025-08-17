@@ -161,7 +161,7 @@ const ExamDashboard: React.FC = () => {
   }, []);
 
   const handleCreateExam = () => {
-    router.push('/teacher/exam/create');
+    router.push('/teacher/create-exam');
   }
 
   const handleDelete = () => {

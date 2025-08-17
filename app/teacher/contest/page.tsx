@@ -110,7 +110,7 @@ const DataStructureSprint: React.FC = () => {
   };
 
   const handleAddQuestion = () => {
-    router.push('/teacher/problem/create');
+    router.push('/teacher/create-exam/select');
   };
 
   const handleModerators = () => {
