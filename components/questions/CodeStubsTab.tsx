@@ -86,7 +86,7 @@ export const CodeStubsTab: React.FC<CodeStubsTabProps> = ({
 
   const handleDeleteDriverCode = async (driverCodeId: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/problems/driver-code/${questionId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/problems/driver-code/${questionId}?id=${driverCodeId}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -154,9 +154,8 @@ export const CodeStubsTab: React.FC<CodeStubsTabProps> = ({
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h4 className="text-lg font-medium text-gray-900">
-                    {driverCode.languageName}
+                    Language: {driverCode.languageName}
                   </h4>
-                  <p className="text-sm text-gray-500">Language ID: {driverCode.languageId}</p>
                 </div>
                 <div className="flex gap-2">
                   <Button
