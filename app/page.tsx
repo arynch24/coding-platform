@@ -15,8 +15,8 @@ const QCAuditSignIn = () => {
   // State management for form data and UI states
   const [form, setForm] = useState({
     email: '',
-    password: '',
-    role: 'manager' as 'manager' | 'auditor'
+    // password: '',
+    role: 'TEACHER' as 'TEACHER' | 'STUDENT'
   });
   const [error, setError] = useState(''); // Error message from sign-in process
   const [showPassword, setShowPassword] = useState(false); // Password visibility toggle
@@ -39,7 +39,7 @@ const QCAuditSignIn = () => {
    * Handle role selection change
    * Updates the selected role in form state
    */
-  const handleRoleChange = (role: 'manager' | 'auditor') => {
+  const handleRoleChange = (role: 'TEACHER' | 'STUDENT') => {
     setForm(prev => ({ ...prev, role }));
   };
 
@@ -52,21 +52,20 @@ const QCAuditSignIn = () => {
     setLoading(true);
 
     // Client-side validation to ensure all fields are filled
-    if (!form.email || !form.password) {
+    if (!form.email ) {
       setError('Please fill in all fields');
       setLoading(false);
       return;
     }
 
     try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/login`, {
-        email: form.email,
-        password: form.password,
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/google`, {
+        code: form.email,
         role: form.role
       }, {
         withCredentials: true,
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/json'
         }
       });
 
@@ -74,15 +73,15 @@ const QCAuditSignIn = () => {
 
       setUser(userData.user);
 
-      // Redirect to dashboard on successful authentication
-      if (userData.user.role === 'manager') {
-        router.push('/manager');
-      }
-      else if (userData.user.role === 'auditor') {
-        router.push('/auditor');
-      } else {
-        setError('Invalid role selected');
-      }
+      // // Redirect to dashboard on successful authentication
+      // if (userData.user.role === 'manager') {
+      //   router.push('/manager');
+      // }
+      // else if (userData.user.role === 'auditor') {
+      //   router.push('/auditor');
+      // } else {
+      //   setError('Invalid role selected');
+      // }
 
     } catch (error:any) {
       const errorMsg = error.response?.data?.message;
@@ -145,7 +144,7 @@ const QCAuditSignIn = () => {
             </div>
 
             {/* Password input field with visibility toggle */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-qc-primary mb-2">
                 Password
               </label>
@@ -159,7 +158,7 @@ const QCAuditSignIn = () => {
                   className="w-full px-3 py-2 bg-qc-dark/9 rounded-xl text-sm focus:outline-none focus:ring-1"
                   required
                 />
-                {/* Password visibility toggle button */}
+                Password visibility toggle button
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -168,7 +167,7 @@ const QCAuditSignIn = () => {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-            </div>
+            </div> */}
 
             {/* Role selection */}
             <div>
@@ -181,20 +180,20 @@ const QCAuditSignIn = () => {
                   <input
                     type="radio"
                     name="role"
-                    value="manager"
-                    checked={form.role === 'manager'}
-                    onChange={() => handleRoleChange('manager')}
+                    value="TEACHER"
+                    checked={form.role === 'TEACHER'}
+                    onChange={() => handleRoleChange('TEACHER')}
                     className="sr-only"
                   />
-                  <div className={`w-4 h-4 rounded-full border-2 mr-2 ${form.role === 'manager'
+                  <div className={`w-4 h-4 rounded-full border-2 mr-2 ${form.role === 'TEACHER'
                     ? 'bg-qc-dark border-qc-dark'
                     : 'border-gray-300'
                     }`}>
-                    {form.role === 'manager' && (
+                    {form.role === 'TEACHER' && (
                       <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
                     )}
                   </div>
-                  <span className="text-sm text-qc-primary">Manager</span>
+                  <span className="text-sm text-qc-primary">Teacher</span>
                 </label>
 
                 {/* Auditor role option */}
@@ -202,20 +201,20 @@ const QCAuditSignIn = () => {
                   <input
                     type="radio"
                     name="role"
-                    value="auditor"
-                    checked={form.role === 'auditor'}
-                    onChange={() => handleRoleChange('auditor')}
+                    value="STUDENT"
+                    checked={form.role === 'STUDENT'}
+                    onChange={() => handleRoleChange('STUDENT')}
                     className="sr-only"
                   />
-                  <div className={`w-4 h-4 rounded-full border-2 mr-2 ${form.role === 'auditor'
+                  <div className={`w-4 h-4 rounded-full border-2 mr-2 ${form.role === 'STUDENT'
                     ? 'bg-qc-dark border-qc-dark'
                     : 'border-gray-300'
                     }`}>
-                    {form.role === 'auditor' && (
+                    {form.role === 'STUDENT' && (
                       <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
                     )}
                   </div>
-                  <span className="text-sm text-qc-primary">Auditor</span>
+                  <span className="text-sm text-qc-primary">STUDENT</span>
                 </label>
               </div>
             </div>
@@ -232,8 +231,8 @@ const QCAuditSignIn = () => {
             <button
               type="button"
               onClick={handleSignIn}
-              disabled={!form.email || !form.password || loading}
-              className={`w-full py-2.5 px-4 rounded-xl text-sm font-medium transition-colors ${form.email && form.password
+              disabled={!form.email || loading}
+              className={`w-full py-2.5 px-4 rounded-xl text-sm font-medium transition-colors ${form.email 
                 ? 'bg-qc-dark/90 text-white hover:bg-qc-dark focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}

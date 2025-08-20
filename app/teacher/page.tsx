@@ -8,6 +8,7 @@ import UpcomingExamCard from '@/components/UpcomingExamCard';
 import PastExamRow from '@/components/PastExamRow';
 import { UpcomingExam, PastExam } from '@/types/dashboard';
 import { Plus } from 'lucide-react';
+import axios from 'axios';
 
 interface ExamDashboardData {
   upcomingExams: UpcomingExam[];
@@ -135,16 +136,13 @@ const ExamDashboard: React.FC = () => {
       setIsLoading(true);
       setError('');
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // In a real app, this would be:
-      // const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/exams`, {
+      // const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/contests`, {
       //   withCredentials: true,
       // });
-      // setDashboardData(response.data);
+      // setDashboardData(response.data.data);
 
       setDashboardData(mockData);
+
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
     } finally {

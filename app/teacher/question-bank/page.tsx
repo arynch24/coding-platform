@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Menu } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { PracticeQuestionsData, Question } from '@/types/dashboard';
+import { PracticeQuestionsData } from '@/types/dashboard';
 import FilterDropdown from '@/components/FilterDropdown';
 import SearchBar from '@/components/SearchBar';
 import QuestionCard from '@/components/QuestionCard';
