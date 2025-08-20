@@ -11,16 +11,21 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import axios from 'axios';
 
+interface Tag {
+    id: string;
+    name: string;
+}
+
 interface Question {
   id: string;
   title: string;
-  constraints?: string;
-  problemStatement?: string;
+  constraints: string;
+  problemStatement: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   isPublic: boolean;
   problemWeight: number;
   testcaseWeight: number;
-  tags: string[];
+  tags: Tag[];
 }
 const QuestionEditorPage: React.FC = () => {
   const params = useParams();
@@ -40,7 +45,7 @@ const QuestionEditorPage: React.FC = () => {
   const fetchQuestion = async () => {
     try {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/problems/${questionId}`, 
+        `${process.env.NEXT_PUBLIC_API_URL}/problems/${questionId}`,
         {
           withCredentials: true
         }
@@ -57,22 +62,6 @@ const QuestionEditorPage: React.FC = () => {
       setShowUnsavedModal(true);
     } else {
       setActiveTab(tabIndex);
-    }
-  };
-
-  const handleSaveDetailsChanges = async (details: any) => {
-    try {
-      const response = await axios.patch(
-        `${process.env.NEXT_PUBLIC_API_URL}/problems/${questionId}`,
-        { ...details },
-        {
-          headers: { 'Content-Type': 'application/json' },
-          withCredentials: true
-        }
-      );
-      setHasUnsavedChanges(false);
-    } catch (error) {
-      console.error('Error saving details changes:', error);
     }
   };
 
@@ -127,7 +116,6 @@ const QuestionEditorPage: React.FC = () => {
           {activeTab === 0 && (
             <QuestionDetailsTab
               question={question}
-              onSave={handleSaveDetailsChanges}
               onDataChange={() => setHasUnsavedChanges(true)}
             />
           )}
