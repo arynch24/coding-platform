@@ -65,27 +65,6 @@ const QuestionEditorPage: React.FC = () => {
     }
   };
 
-  const handleSaveChanges = async (tabData: any) => {
-    try {
-      const response = await fetch(`/api/questions/${questionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(tabData),
-      });
-
-      if (response.ok) {
-        setHasUnsavedChanges(false);
-        if (pendingTab !== null) {
-          setActiveTab(pendingTab);
-          setPendingTab(null);
-          setShowUnsavedModal(false);
-        }
-      }
-    } catch (error) {
-      console.error('Error saving changes:', error);
-    }
-  };
-
   const tabs = [
     { label: 'Details', id: 'details' },
     { label: 'Code Stubs', id: 'code-stubs' },
@@ -122,20 +101,19 @@ const QuestionEditorPage: React.FC = () => {
           {activeTab === 1 && (
             <CodeStubsTab
               questionId={question.id}
-              onDataChange={() => setHasUnsavedChanges(true)}
+              // onDataChange={() => setHasUnsavedChanges(true)}
             />
           )}
           {activeTab === 2 && (
             <ModeratorsTab
               questionId={question.id}
-              onSave={handleSaveChanges}
               onDataChange={() => setHasUnsavedChanges(true)}
             />
           )}
           {activeTab === 3 && (
             <TestCasesTab
               questionId={question.id}
-              onDataChange={() => setHasUnsavedChanges(true)}
+              // onDataChange={() => setHasUnsavedChanges(true)}
             />
           )}
         </div>
