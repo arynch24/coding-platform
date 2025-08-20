@@ -163,3 +163,52 @@ export interface TestCase {
     points: number;
     type: 'sample' | 'regular';
 }
+
+export interface Question {
+  id: string;
+  number: number;
+  title: string;
+  topics: string[];
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  isSolved?: boolean;
+  isOwner: boolean;
+  creator?: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+  isPublic: boolean;
+}
+
+export interface PracticeQuestionsData {
+  questions: Question[];
+}
+
+// API Response Types
+export interface ApiTag {
+  id: string;
+  name: string;
+}
+
+export interface ApiCreator {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface ApiProblem {
+  id: string;
+  title: string;
+  problemStatement: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  isPublic: boolean;
+  tags: ApiTag[];
+  creator: ApiCreator | null;
+  isOwner: boolean;
+}
+
+export interface ApiProblemsResponse {
+  data: {
+    problems: ApiProblem[];
+  };
+}
