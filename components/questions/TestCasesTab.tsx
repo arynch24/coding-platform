@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/Button';
 import AddTestCaseModal from './AddTestCaseModal';
 import axios from 'axios';
+import ViewTestCaseModal from './ViewTestCaseModal';
 
 // Configure axios defaults
 axios.defaults.withCredentials = true;
@@ -26,19 +27,28 @@ interface TestCase {
 
 interface TestCasesTabProps {
     questionId: string;
-    onSave: (data: any) => Promise<void>;
     onDataChange: () => void;
+}
+
+interface TestCaseData {
+    id: string;
+    isSample: boolean;
+    input: string;
+    output: string;
+    weight: number;
+    explanation?: string;
 }
 
 export const TestCasesTab: React.FC<TestCasesTabProps> = ({
     questionId,
-    onSave,
     onDataChange,
 }) => {
     const [testCases, setTestCases] = useState<TestCase[]>([]);
     const [showAddModal, setShowAddModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState<string>('');
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [viewingTestCase, setViewingTestCase] = useState<TestCaseData | null>(null);
 
     useEffect(() => {
         fetchTestCases();
@@ -73,17 +83,6 @@ export const TestCasesTab: React.FC<TestCasesTabProps> = ({
             return false;
         }
     };
-
-    const handleSave = async ({ testCases }: { testCases: TestCase[] }) => {
-        setIsLoading(true);
-        try {
-            await onSave({ testCases });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-
 
     const removeTestCase = async (testCaseId: string) => {
         try {
@@ -171,8 +170,8 @@ export const TestCasesTab: React.FC<TestCasesTabProps> = ({
             );
 
             const testCaseData = response.data.data;
-            // Open modal or new window to display test case content
-            console.log('Test case data:', testCaseData);
+            setViewingTestCase(testCaseData);
+            setShowViewModal(true);
         } catch (error) {
             console.error('Error fetching test case:', error);
         }
@@ -306,6 +305,15 @@ export const TestCasesTab: React.FC<TestCasesTabProps> = ({
                     onClose={() => setShowAddModal(false)}
                     onAdd={handleAddTestCaseFromModal}
                     isLoading={isLoading}
+                />
+            )}
+            {showViewModal && (
+                <ViewTestCaseModal
+                    testCase={viewingTestCase}
+                    onClose={() => {
+                        setShowViewModal(false);
+                        setViewingTestCase(null);
+                    }}
                 />
             )}
         </div>

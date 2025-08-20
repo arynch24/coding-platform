@@ -148,7 +148,6 @@ const QuestionEditorPage: React.FC = () => {
           {activeTab === 3 && (
             <TestCasesTab
               questionId={question.id}
-              onSave={handleSaveChanges}
               onDataChange={() => setHasUnsavedChanges(true)}
             />
           )}
