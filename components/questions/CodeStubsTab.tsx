@@ -19,12 +19,10 @@ interface Language {
 
 interface CodeStubsTabProps {
   questionId: string;
-  onDataChange?: () => void;
 }
 
 export const CodeStubsTab: React.FC<CodeStubsTabProps> = ({
   questionId,
-  onDataChange,
 }) => {
   const [driverCodes, setDriverCodes] = useState<DriverCode[]>([]);
   const [languages, setLanguages] = useState<Language[]>([]);
@@ -94,7 +92,6 @@ export const CodeStubsTab: React.FC<CodeStubsTabProps> = ({
 
       if (response.ok) {
         setDriverCodes(prev => prev.filter(dc => dc.id !== driverCodeId));
-        onDataChange?.();
       } else {
         console.error('Error deleting driver code:', response.statusText);
       }
@@ -111,7 +108,6 @@ export const CodeStubsTab: React.FC<CodeStubsTabProps> = ({
       // Add new driver code
       setDriverCodes(prev => [...prev, newDriverCode]);
     }
-    onDataChange?.();
     setShowAddModal(false);
   };
 

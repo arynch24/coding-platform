@@ -20,12 +20,10 @@ interface AssistantTeacher {
 
 interface ModeratorsTabProps {
   questionId: string;
-  onDataChange: () => void;
 }
 
 export const ModeratorsTab: React.FC<ModeratorsTabProps> = ({
   questionId,
-  onDataChange,
 }) => {
   const [moderators, setModerators] = useState<Moderator[]>([]);
   const [availableTeachers, setAvailableTeachers] = useState<Array<{value: string, label: string}>>([]);
@@ -103,7 +101,6 @@ export const ModeratorsTab: React.FC<ModeratorsTabProps> = ({
         // Refresh moderators list after successful addition
         await fetchModerators();
         setSelectedTeachers([]); // Clear selected teachers
-        onDataChange();
       }
     } catch (error) {
       console.error('Error adding moderators:', error);
@@ -122,7 +119,6 @@ export const ModeratorsTab: React.FC<ModeratorsTabProps> = ({
       if (response.data.success || response.status === 200) {
         // Remove from local state
         setModerators(prev => prev.filter(mod => mod.moderatorId !== moderatorId));
-        onDataChange();
       }
     } catch (error) {
       console.error('Error removing moderator:', error);

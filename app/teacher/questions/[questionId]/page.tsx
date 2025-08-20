@@ -65,6 +65,10 @@ const QuestionEditorPage: React.FC = () => {
     }
   };
 
+  const handleSaveSuccess = () => {
+  setHasUnsavedChanges(false);
+};
+
   const tabs = [
     { label: 'Details', id: 'details' },
     { label: 'Code Stubs', id: 'code-stubs' },
@@ -96,24 +100,22 @@ const QuestionEditorPage: React.FC = () => {
             <QuestionDetailsTab
               question={question}
               onDataChange={() => setHasUnsavedChanges(true)}
+              onSaveSuccess={handleSaveSuccess} 
             />
           )}
           {activeTab === 1 && (
             <CodeStubsTab
               questionId={question.id}
-              // onDataChange={() => setHasUnsavedChanges(true)}
             />
           )}
           {activeTab === 2 && (
             <ModeratorsTab
               questionId={question.id}
-              onDataChange={() => setHasUnsavedChanges(true)}
             />
           )}
           {activeTab === 3 && (
             <TestCasesTab
               questionId={question.id}
-              // onDataChange={() => setHasUnsavedChanges(true)}
             />
           )}
         </div>

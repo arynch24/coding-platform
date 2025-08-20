@@ -27,7 +27,6 @@ interface TestCase {
 
 interface TestCasesTabProps {
     questionId: string;
-    onDataChange?: () => void;
 }
 
 interface TestCaseData {
@@ -41,7 +40,6 @@ interface TestCaseData {
 
 export const TestCasesTab: React.FC<TestCasesTabProps> = ({
     questionId,
-    onDataChange,
 }) => {
     const [testCases, setTestCases] = useState<TestCase[]>([]);
     const [showAddModal, setShowAddModal] = useState(false);
@@ -93,7 +91,6 @@ export const TestCasesTab: React.FC<TestCasesTabProps> = ({
 
             if (response.status === 200) {
                 setTestCases(prev => prev.filter(tc => tc.id !== testCaseId));
-                onDataChange?.();
             }
         } catch (error) {
             console.error('Error removing test case:', error);
@@ -152,7 +149,6 @@ export const TestCasesTab: React.FC<TestCasesTabProps> = ({
 
             if (createResponse.status === 201) {
                 fetchTestCases();
-                onDataChange?.();
                 setShowAddModal(false);
             }
         } catch (error) {

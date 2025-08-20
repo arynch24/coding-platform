@@ -25,11 +25,13 @@ interface Question {
 interface QuestionDetailsTabProps {
     question: Question;
     onDataChange: () => void;
+        onSaveSuccess: () => void;
 }
 
 export const QuestionDetailsTab: React.FC<QuestionDetailsTabProps> = ({
     question,
     onDataChange,
+    onSaveSuccess
 }) => {
     const [formData, setFormData] = useState({
         title: question.title || '',
@@ -114,7 +116,7 @@ export const QuestionDetailsTab: React.FC<QuestionDetailsTabProps> = ({
             );
 
             // Call onDataChange to refresh the parent component
-            onDataChange();
+            onSaveSuccess();
 
             // Show success message (you might want to add a toast notification here)
             console.log('Question updated successfully');
