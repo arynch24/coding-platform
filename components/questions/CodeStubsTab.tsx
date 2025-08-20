@@ -19,39 +19,55 @@ interface Language {
 
 interface CodeStubsTabProps {
   questionId: string;
-  onSave: (data: any) => Promise<void>;
-  onDataChange: () => void;
+  onDataChange?: () => void;
 }
 
 export const CodeStubsTab: React.FC<CodeStubsTabProps> = ({
   questionId,
-  onSave,
   onDataChange,
 }) => {
   const [driverCodes, setDriverCodes] = useState<DriverCode[]>([]);
   const [languages, setLanguages] = useState<Language[]>([]);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCode, setEditingCode] = useState<DriverCode | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // fetchDriverCodes();
+    fetchDriverCodes();
     fetchLanguages();
   }, [questionId]);
 
   const fetchDriverCodes = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/problems/driver-code/${questionId}`);
-      setDriverCodes(response.data);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/problems/driver-code/${questionId}`, {
+        withCredentials: true,
+      });
+
+      // Handle both single object and array responses
+      const codes = response.data.data;
+
+      // Map the response to match our interface
+      const mappedCodes = codes
+        .map((code: any) => ({
+          id: code.id,
+          languageId: code.language.id || '',
+          languageName: code.language.name || '',
+          prelude: code.prelude || '',
+          boilerplate: code.boilerplate || '',
+          driverCode: code.driverCode || '',
+        }));
+
+      setDriverCodes(mappedCodes);
     } catch (error) {
       console.error('Error fetching driver codes:', error);
+      setDriverCodes([]);
     }
   };
 
   const fetchLanguages = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/languages`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/languages`, {
+        withCredentials: true,
+      });
       setLanguages(response.data.data.languages);
     } catch (error) {
       console.error('Error fetching languages:', error);
@@ -69,36 +85,40 @@ export const CodeStubsTab: React.FC<CodeStubsTabProps> = ({
   };
 
   const handleDeleteDriverCode = async (driverCodeId: string) => {
-    if (!confirm('Are you sure you want to delete this driver code?')) return;
-
     try {
-      const response = await fetch(`/api/problems/driver-code/${questionId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/problems/driver-code/${questionId}`, {
         method: 'DELETE',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ driverCodeId }),
       });
 
       if (response.ok) {
         setDriverCodes(prev => prev.filter(dc => dc.id !== driverCodeId));
-        onDataChange();
+        onDataChange?.();
+      } else {
+        console.error('Error deleting driver code:', response.statusText);
       }
     } catch (error) {
       console.error('Error deleting driver code:', error);
     }
   };
 
-  const handleSave = async () => {
-    setIsLoading(true);
-    try {
-      await onSave({ driverCodes });
-    } finally {
-      setIsLoading(false);
+  const handleSaveDriverCode = (newDriverCode: DriverCode) => {
+    if (editingCode) {
+      // Update existing driver code
+      setDriverCodes(prev => prev.map(dc => dc.id === editingCode.id ? newDriverCode : dc));
+    } else {
+      // Add new driver code
+      setDriverCodes(prev => [...prev, newDriverCode]);
     }
+    onDataChange?.();
+    setShowAddModal(false);
   };
 
-  const availableLanguages = languages.filter(
-    lang => !driverCodes.some(dc => dc.languageId === lang.id)
-  );
+  // Get available languages (excluding those that already have driver codes)
+  const availableLanguages = editingCode
+    ? languages // When editing, show all languages but disable the select
+    : languages.filter(lang => !driverCodes.some(dc => dc.languageId === lang.id));
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
@@ -109,7 +129,7 @@ export const CodeStubsTab: React.FC<CodeStubsTabProps> = ({
             Define language-specific code templates including prelude code, boilerplate code, and driver code for different programming languages.
           </p>
         </div>
-        <Button 
+        <Button
           onClick={handleAddDriverCode}
           disabled={availableLanguages.length === 0}
           className="bg-green-600 hover:bg-green-700"
@@ -200,16 +220,6 @@ export const CodeStubsTab: React.FC<CodeStubsTabProps> = ({
         </div>
       )}
 
-      <div className="mt-8 flex justify-end">
-        <Button
-          onClick={handleSave}
-          disabled={isLoading}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          {isLoading ? 'Saving...' : 'Save Changes'}
-        </Button>
-      </div>
-
       {showAddModal && (
         <AddCodeStubModal
           isOpen={showAddModal}
@@ -217,15 +227,7 @@ export const CodeStubsTab: React.FC<CodeStubsTabProps> = ({
           languages={availableLanguages}
           editingCode={editingCode}
           questionId={questionId}
-          onSave={(newDriverCode) => {
-            if (editingCode) {
-              setDriverCodes(prev => prev.map(dc => dc.id === editingCode.id ? newDriverCode : dc));
-            } else {
-              setDriverCodes(prev => [...prev, newDriverCode]);
-            }
-            onDataChange();
-            setShowAddModal(false);
-          }}
+          onSave={handleSaveDriverCode}
         />
       )}
     </div>

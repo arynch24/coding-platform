@@ -122,7 +122,6 @@ const QuestionEditorPage: React.FC = () => {
           {activeTab === 1 && (
             <CodeStubsTab
               questionId={question.id}
-              onSave={handleSaveChanges}
               onDataChange={() => setHasUnsavedChanges(true)}
             />
           )}

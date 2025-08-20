@@ -11,6 +11,7 @@ interface SelectProps {
   options: SelectOption[];
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export const Select: React.FC<SelectProps> = ({ 
@@ -18,12 +19,14 @@ export const Select: React.FC<SelectProps> = ({
   onChange, 
   options, 
   placeholder,
-  className = '' 
+  className = '',
+  disabled = false
 }) => {
   return (
     <select
       value={value || ''}
       onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
       className={`px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent bg-white ${className}`}
     >
       {placeholder && <option value="">{placeholder}</option>}

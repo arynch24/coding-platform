@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Select } from "../ui/Select";
 import { Button } from "../ui/Button";
 
@@ -32,41 +32,59 @@ const AddCodeStubModal: React.FC<{
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  // Reset form data when editingCode changes
+  useEffect(() => {
+    setFormData({
+      languageId: editingCode?.languageId || '',
+      prelude: editingCode?.prelude || '',
+      boilerplate: editingCode?.boilerplate || '',
+      driverCode: editingCode?.driverCode || '',
+    });
+  }, [editingCode]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.languageId) return;
 
     setIsLoading(true);
     try {
-      const url = editingCode 
-        ? `/api/problems/driver-code/${questionId}`
-        : `/api/problems/driver-code/${questionId}`;
+      let response;
       
-      const method = editingCode ? 'PATCH' : 'POST';
-      const body = editingCode 
-        ? { ...formData, driverCodeId: editingCode.id }
-        : formData;
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+      if (editingCode) {
+        // Update existing driver code - use driver code ID in URL, not question ID
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/problems/driver-code/${editingCode.id}`, {
+          credentials: 'include',
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+      } else {
+        // Create new driver code - use question ID in URL
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/problems/driver-code/${questionId}`, {
+          credentials: 'include',
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+      }
 
       if (response.ok) {
         const data = await response.json();
         const selectedLanguage = languages.find(lang => lang.id === formData.languageId);
         
         const newDriverCode: DriverCode = {
-          id: editingCode?.id || data.id,
+          id: editingCode?.id || data.data.id,
           languageId: formData.languageId,
-          languageName: selectedLanguage?.name || '',
+          languageName: selectedLanguage?.name || data.data.language?.name || '',
           prelude: formData.prelude,
           boilerplate: formData.boilerplate,
           driverCode: formData.driverCode,
         };
         
         onSave(newDriverCode);
+        onClose();
+      } else {
+        console.error('Error saving driver code:', response.statusText);
       }
     } catch (error) {
       console.error('Error saving driver code:', error);
@@ -102,7 +120,7 @@ const AddCodeStubModal: React.FC<{
                 label: `${lang.name}` 
               }))}
               placeholder="Select a language..."
-            //   disabled={!!editingCode}
+              disabled={!!editingCode} // Disable language selection when editing
             />
           </div>
 
