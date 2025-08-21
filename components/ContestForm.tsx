@@ -8,7 +8,7 @@ import { Button } from './ui/Button';
 import { Select } from './ui/Select';
 import { Input } from './ui/Input';
 import { Textarea } from './ui/TextArea';
-import { Contest, ContestFormData } from '@/types/dashboard';
+import { Contest } from '@/types/dashboard';
 import { Tag } from './ui/Tag';
 
 interface ContestFormProps {
@@ -41,22 +41,67 @@ interface Moderator {
     id: string;
     name: string;
     email: string;
+    designation: string;
 }
+
+// Utility functions for timezone conversion
+const convertUTCToIST = (utcDateString: string): string => {
+    if (!utcDateString) return '';
+
+    // Create a date object from UTC string (this will be in UTC)
+    const utcDate = new Date(utcDateString);
+
+    // Get the UTC timestamp and add 5.5 hours (330 minutes) for IST
+    const istTimestamp = utcDate.getTime() + (5.5 * 60 * 60 * 1000);
+    const istDate = new Date(istTimestamp);
+
+    // Format for datetime-local input (YYYY-MM-DDTHH:MM)
+    // We need to format it manually to avoid timezone issues
+    const year = istDate.getUTCFullYear();
+    const month = String(istDate.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(istDate.getUTCDate()).padStart(2, '0');
+    const hours = String(istDate.getUTCHours()).padStart(2, '0');
+    const minutes = String(istDate.getUTCMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+const convertISTToUTC = (istDateString: string): string => {
+    if (!istDateString) return '';
+
+    // Parse the datetime-local value as if it's IST
+    // datetime-local gives us "2024-01-15T16:00" format
+    const [datePart, timePart] = istDateString.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hours, minutes] = timePart.split(':').map(Number);
+
+    // Create date in IST by manually setting UTC values and subtracting IST offset
+    // This treats the input as IST time
+    const istDate = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+
+    // Convert IST to UTC by subtracting 5.5 hours
+    const utcTimestamp = istDate.getTime() - (5.5 * 60 * 60 * 1000);
+    const utcDate = new Date(utcTimestamp);
+
+    return utcDate.toISOString();
+};
 
 const ContestForm: React.FC<ContestFormProps> = ({ contestId: contestIdParam, initialData, mode }) => {
     // Unwrap contestId if it's a Promise (Next.js 15+)
-    const contestId = typeof contestIdParam === 'string' 
-        ? contestIdParam 
+    const contestId = typeof contestIdParam === 'string'
+        ? contestIdParam
         : use(contestIdParam).contestId;
+
     const [formData, setFormData] = useState({
         title: '',
         batches: [] as string[],
         description: '',
         topics: [] as string[],
         languages: [] as string[],
-        startTime: '',
-        endTime: '',
-        moderators: [] as string[]
+        startTime: '', // This will store IST time for display
+        endTime: '',   // This will store IST time for display
+        moderators: [] as string[],
+        subjectId: ''
     });
 
     // Available options from APIs
@@ -64,12 +109,14 @@ const ContestForm: React.FC<ContestFormProps> = ({ contestId: contestIdParam, in
     const [availableTags, setAvailableTags] = useState<TagItem[]>([]);
     const [availableBatches, setAvailableBatches] = useState<Batch[]>([]);
     const [availableModerators, setAvailableModerators] = useState<Moderator[]>([]);
+    const [availableSubjects, setAvailableSubjects] = useState<Subject[]>([]);
 
     // Selected items for display
     const [selectedLanguages, setSelectedLanguages] = useState<Language[]>([]);
     const [selectedTags, setSelectedTags] = useState<TagItem[]>([]);
     const [selectedBatches, setSelectedBatches] = useState<Batch[]>([]);
     const [selectedModerators, setSelectedModerators] = useState<Moderator[]>([]);
+    const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
 
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -90,9 +137,11 @@ const ContestForm: React.FC<ContestFormProps> = ({ contestId: contestIdParam, in
                 description: initialData.description,
                 topics: initialData.tags.map(tag => tag.id),
                 languages: initialData.allowedLanguages.map(lang => lang.id),
-                startTime: new Date(initialData.startTime).toISOString().slice(0, 16),
-                endTime: new Date(initialData.endTime).toISOString().slice(0, 16),
-                moderators: initialData.contestModerators.map(mod => mod.id)
+                // Convert UTC times from backend to IST for display
+                startTime: convertUTCToIST(initialData.startTime),
+                endTime: convertUTCToIST(initialData.endTime),
+                moderators: initialData.contestModerators.map(mod => mod.id),
+                subjectId: initialData.subject?.id || '',
             });
         } else if (contestId !== 'new') {
             fetchContestData();
@@ -105,24 +154,27 @@ const ContestForm: React.FC<ContestFormProps> = ({ contestId: contestIdParam, in
         setSelectedTags(availableTags.filter(tag => formData.topics.includes(tag.id)));
         setSelectedBatches(availableBatches.filter(batch => formData.batches.includes(batch.id)));
         setSelectedModerators(availableModerators.filter(mod => formData.moderators.includes(mod.id)));
+        setSelectedSubject(availableSubjects.find(sub => sub.id === formData.subjectId) || null);
     }, [
-        formData.languages, formData.topics, formData.batches, formData.moderators,
-        availableLanguages, availableTags, availableBatches, availableModerators
+        formData.languages, formData.topics, formData.batches, formData.moderators, formData.subjectId,
+        availableLanguages, availableTags, availableBatches, availableModerators, availableSubjects
     ]);
 
     const fetchAvailableOptions = async () => {
         try {
-            const [languagesRes, tagsRes, batchesRes, moderatorsRes] = await Promise.all([
+            const [languagesRes, tagsRes, batchesRes, moderatorsRes, subjectsRes] = await Promise.all([
                 axios.get(`${process.env.NEXT_PUBLIC_API_URL}/languages`, { withCredentials: true }),
                 axios.get(`${process.env.NEXT_PUBLIC_API_URL}/tags`, { withCredentials: true }),
                 axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/teachers/batches`, { withCredentials: true }),
-                axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/teachers/assistant-teachers`, { withCredentials: true })
+                axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/teachers/assistant-teachers`, { withCredentials: true }),
+                axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/teachers/subjects`, { withCredentials: true }),
             ]);
 
             setAvailableLanguages(languagesRes.data.data.languages || languagesRes.data.data);
             setAvailableTags(tagsRes.data.data.tags || tagsRes.data.data);
             setAvailableBatches(batchesRes.data.data.batches || batchesRes.data.data);
             setAvailableModerators(moderatorsRes.data.data.assistant_teachers || moderatorsRes.data.data);
+            setAvailableSubjects(subjectsRes.data.data.subjects || subjectsRes.data.data);
         } catch (error) {
             console.error('Error fetching available options:', error);
             setError('Failed to load form options');
@@ -135,7 +187,7 @@ const ContestForm: React.FC<ContestFormProps> = ({ contestId: contestIdParam, in
             const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/contests/${contestId}`, {
                 withCredentials: true,
             });
-            
+
             const contest = response.data.data.contestDetails;
 
             setFormData({
@@ -144,9 +196,11 @@ const ContestForm: React.FC<ContestFormProps> = ({ contestId: contestIdParam, in
                 description: contest.description,
                 topics: contest.tags.map((tag: any) => tag.id),
                 languages: contest.allowedLanguages.map((lang: any) => lang.id),
-                startTime: new Date(contest.startTime).toISOString().slice(0, 16),
-                endTime: new Date(contest.endTime).toISOString().slice(0, 16),
-                moderators: contest.contestModerators.map((mod: any) => mod.id)
+                // Convert UTC times from backend to IST for display
+                startTime: convertUTCToIST(contest.startTime),
+                endTime: convertUTCToIST(contest.endTime),
+                moderators: contest.contestModerators.map((mod: any) => mod.id),
+                subjectId: contest.subject?.id || ''
             });
         } catch (err) {
             console.error('Error fetching contest:', err);
@@ -167,7 +221,11 @@ const ContestForm: React.FC<ContestFormProps> = ({ contestId: contestIdParam, in
             return;
         }
 
-        if (new Date(formData.startTime) >= new Date(formData.endTime)) {
+        // Validate times in IST context
+        const startTimeIST = new Date(formData.startTime);
+        const endTimeIST = new Date(formData.endTime);
+
+        if (startTimeIST >= endTimeIST) {
             setError('End time must be after start time');
             return;
         }
@@ -180,12 +238,14 @@ const ContestForm: React.FC<ContestFormProps> = ({ contestId: contestIdParam, in
                 isOpen: true,
                 title: formData.title,
                 description: formData.description,
-                startTime: new Date(formData.startTime).toISOString(),
-                endTime: new Date(formData.endTime).toISOString(),
+                // Convert IST times to UTC before sending to backend
+                startTime: convertISTToUTC(formData.startTime),
+                endTime: convertISTToUTC(formData.endTime),
                 batches: formData.batches,
                 topics: formData.topics,
                 languages: formData.languages,
-                moderators: formData.moderators
+                moderators: formData.moderators,
+                subjectId: formData.subjectId
             };
 
             await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/contests/${contestId}`, updateData, {
@@ -231,7 +291,7 @@ const ContestForm: React.FC<ContestFormProps> = ({ contestId: contestIdParam, in
                 <label className="text-sm font-medium text-gray-700 mb-2">
                     {label} <span className="text-red-500">*</span>
                 </label>
-                
+
                 {/* Selected items */}
                 {selectedItems.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-2">
@@ -241,7 +301,16 @@ const ContestForm: React.FC<ContestFormProps> = ({ contestId: contestIdParam, in
                                 variant={mode === 'edit' ? 'removable' : 'default'}
                                 onRemove={mode === 'edit' ? () => handleRemoveItem(type, item.id) : undefined}
                             >
-                                {item.name}
+                                {/* Show additional info for moderators */}
+                                {type === 'moderators' ? (
+                                    <div className="flex flex-col text-left">
+                                        <span className="font-medium">{item.name}</span>
+                                        <span className="text-xs text-gray-600">{item.email}</span>
+                                        <span className="text-xs text-gray-500">{item.designation}</span>
+                                    </div>
+                                ) : (
+                                    item.name
+                                )}
                             </Tag>
                         ))}
                     </div>
@@ -256,11 +325,132 @@ const ContestForm: React.FC<ContestFormProps> = ({ contestId: contestIdParam, in
                             { value: '', label: `Select ${label.toLowerCase()}...` },
                             ...unselectedItems.map(item => ({
                                 value: item.id,
-                                label: item.name
+                                label: type === 'moderators'
+                                    ? `${item.name} (${item.email}) - ${item.designation}`
+                                    : item.name
                             }))
                         ]}
                         placeholder={`Add ${label.toLowerCase()}`}
                     />
+                )}
+            </div>
+        );
+    };
+
+    const renderSubjectSelection = () => {
+        return (
+            <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-700 mb-2">
+                    Subject <span className="text-red-500">*</span>
+                </label>
+
+                {/* Show selected subject */}
+                {selectedSubject && mode === 'view' && (
+                    <div className="mb-2">
+                        <Tag variant="default">
+                            {selectedSubject.name}
+                        </Tag>
+                    </div>
+                )}
+
+                {/* Subject dropdown for edit mode */}
+                {mode === 'edit' && (
+                    <Select
+                        value={formData.subjectId}
+                        onChange={(value) => setFormData({ ...formData, subjectId: value })}
+                        options={[
+                            { value: '', label: 'Select subject...' },
+                            ...availableSubjects.map(subject => ({
+                                value: subject.id,
+                                label: subject.name
+                            }))
+                        ]}
+                        placeholder="Choose a subject"
+                    />
+                )}
+
+                {/* Show selected subject as tag in edit mode */}
+                {selectedSubject && mode === 'edit' && (
+                    <div className="mt-2">
+                        <Tag
+                            variant="removable"
+                            onRemove={() => setFormData({ ...formData, subjectId: '' })}
+                        >
+                            {selectedSubject.name}
+                        </Tag>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    const renderModeratorsSection = () => {
+        const unselectedModerators = availableModerators.filter(
+            mod => !formData.moderators.includes(mod.id)
+        );
+
+        return (
+            <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-700 mb-3">
+                    Moderators <span className="text-red-500">*</span>
+                </label>
+
+                {/* Selected moderators */}
+                {selectedModerators.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                        {selectedModerators.map((moderator) => (
+                            <div
+                                key={moderator.id}
+                                className="bg-blue-50 border border-blue-200 rounded-lg p-3 relative group"
+                            >
+                                {/* Remove button for edit mode */}
+                                {mode === 'edit' && (
+                                    <button
+                                        onClick={() => handleRemoveItem('moderators', moderator.id)}
+                                        className="absolute top-2 right-2 w-5 h-5 bg-gray-200  rounded-full flex items-center justify-center text-xs hover:bg-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <X className="w-3 h-3 text-gray-600" />
+                                    </button>
+                                )}
+
+                                <div className="space-y-1">
+                                    <div className="font-medium text-gray-900 pr-6">
+                                        {moderator.name}
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                        {moderator.email}
+                                    </div>
+                                    <div className="text-xs text-blue-600 font-medium bg-blue-100 px-2 py-1 rounded inline-block">
+                                        {moderator.designation}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Add new moderator dropdown */}
+                {mode === 'edit' && unselectedModerators.length > 0 && (
+                    <div className="max-w-md">
+                        <Select
+                            value=""
+                            onChange={(value) => handleSelectItem('moderators', value)}
+                            options={[
+                                { value: '', label: 'Select moderator...' },
+                                ...unselectedModerators.map(moderator => ({
+                                    value: moderator.id,
+                                    label: `${moderator.name} (${moderator.email}) - ${moderator.designation}`
+                                }))
+                            ]}
+                            placeholder="Add moderator"
+                        />
+                    </div>
+                )}
+
+                {selectedModerators.length === 0 && (
+                    <div className="text-gray-500 text-sm italic">
+                        No moderators selected
+                    </div>
                 )}
             </div>
         );
@@ -333,23 +523,28 @@ const ContestForm: React.FC<ContestFormProps> = ({ contestId: contestIdParam, in
                             />
                         </div>
 
-                        {/* Row 1: Batches, Languages, Topics */}
+                        {/* Row 1: Subject (full width) */}
+                        <div className="grid grid-cols-1 gap-6">
+                            {renderSubjectSelection()}
+                        </div>
+
+                        {/* Row 2: Batches, Languages, Topics */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {renderSelectableItems('batches', availableBatches, selectedBatches, 'Batches')}
                             {renderSelectableItems('languages', availableLanguages, selectedLanguages, 'Languages')}
                             {renderSelectableItems('topics', availableTags, selectedTags, 'Topics')}
                         </div>
 
-                        {/* Row 2: Moderators */}
+                        {/* Row 3: Moderators */}
                         <div className="grid grid-cols-1 gap-6">
-                            {renderSelectableItems('moderators', availableModerators, selectedModerators, 'Moderators')}
+                            {renderModeratorsSection()}
                         </div>
 
-                        {/* Row 3: Start Time, End Time */}
+                        {/* Row 4: Start Time, End Time */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="text-sm font-medium text-gray-700 mb-2 block">
-                                    Start Time <span className="text-red-500">*</span>
+                                    Start Time (IST) <span className="text-red-500">*</span>
                                 </label>
                                 <Input
                                     required
@@ -358,11 +553,12 @@ const ContestForm: React.FC<ContestFormProps> = ({ contestId: contestIdParam, in
                                     onChange={(value) => setFormData({ ...formData, startTime: typeof value === 'string' ? value : value.target.value })}
                                     disabled={mode === 'view'}
                                 />
+                                <p className="text-xs text-gray-500 mt-1">Indian Standard Time</p>
                             </div>
 
                             <div>
                                 <label className="text-sm font-medium text-gray-700 mb-2 block">
-                                    End Time <span className="text-red-500">*</span>
+                                    End Time (IST) <span className="text-red-500">*</span>
                                 </label>
                                 <Input
                                     required
@@ -371,6 +567,7 @@ const ContestForm: React.FC<ContestFormProps> = ({ contestId: contestIdParam, in
                                     onChange={(value) => setFormData({ ...formData, endTime: typeof value === 'string' ? value : value.target.value })}
                                     disabled={mode === 'view'}
                                 />
+                                <p className="text-xs text-gray-500 mt-1">Indian Standard Time</p>
                             </div>
                         </div>
 

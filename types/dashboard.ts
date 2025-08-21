@@ -217,13 +217,14 @@ export interface Contest {
   id: string;
   title: string;
   description: string;
-  startTime: Date;
-  endTime: Date;
+  startTime: string;
+  endTime: string;
   isOpen: boolean;
   batchContests: { id: string; name: string; }[];
   contestModerators: { id: string; name: string; email: string; }[];
   tags: { id: string; name: string; }[];
   allowedLanguages: { id: string; name: string; }[];
+  subject: { id: string; name: string; } | null;
 }
 
 export interface ContestFormData {
