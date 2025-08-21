@@ -1,80 +1,80 @@
+// components/ProblemCard.tsx
+import React from "react";
 import Badge from "./ui/Badge";
-import { Edit } from "lucide-react"; 
+import { Edit } from "lucide-react";
 
 interface ProblemCardProps {
   number: number;
   title: string;
   points: number;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  role: 'teacher' | 'student';
+  difficulty: "Easy" | "Medium" | "Hard";
+  role: "teacher" | "student";
   onClick: () => void;
-  isSolved?: boolean; // Only used for teacher role
-  onEdit?: () => void; // Only used for student role
+  isSolved?: boolean;
+  onEdit?: () => void;
 }
 
-const ProblemCard: React.FC<ProblemCardProps> = ({ 
-  number, 
-  title, 
-  points, 
-  difficulty, 
+const ProblemCard: React.FC<ProblemCardProps> = ({
+  number,
+  title,
+  points,
+  difficulty,
   role,
-  onClick, 
-  isSolved, 
-  onEdit 
+  onClick,
+  isSolved = false,
+  onEdit,
 }) => {
   const getDifficultyVariant = (diff: string) => {
     switch (diff.toLowerCase()) {
-      case 'easy': return 'easy';
-      case 'medium': return 'medium';
-      case 'hard': return 'hard';
-      default: return 'default';
+      case "easy":
+        return "easy";
+      case "medium":
+        return "medium";
+      case "hard":
+        return "hard";
+      default:
+        return "default";
     }
   };
 
   return (
     <div
-      className="bg-white rounded-lg p-4 flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow"
       onClick={onClick}
+      className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
     >
-      <div className="flex items-center space-x-4">
-        <span className="text-gray-600 font-medium">{number}.</span>
-        <span className="text-gray-900 font-medium">{title}</span>
+      <div className="flex items-center space-x-4 flex-1">
+        <span className="font-bold text-gray-700 w-8">{number}.</span>
+        <span className="font-medium text-gray-900">{title}</span>
       </div>
 
-      <div className="flex items-center space-x-4">
-        {/* Teacher role: Show solved/unsolved status */}
-        {role === 'student' && (
-          <>
-            {isSolved ? (
-              <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            ) : (
-              <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            )}
-          </>
+      <div className="flex items-center space-x-6">
+        {/* Points */}
+        <span className="text-sm text-gray-600 font-medium">{points} pts</span>
+
+        {/* Difficulty Badge */}
+        <Badge variant={getDifficultyVariant(difficulty)}>
+          {difficulty}
+        </Badge>
+
+        {/* Solved Status (for students) */}
+        {role === "student" && (
+          <span className={`text-sm font-medium ${isSolved ? "text-green-600" : "text-gray-500"}`}>
+            {isSolved ? "Solved" : "Unsolved"}
+          </span>
         )}
 
-        {/* Student role: Show edit button */}
-        {role === 'teacher' && onEdit && (
+        {/* Edit Button (for teachers, only if enabled) */}
+        {role === "teacher" && onEdit && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               onEdit();
             }}
-            className="p-1 hover:bg-gray-100 rounded"
+            className="p-1 hover:bg-gray-100 rounded text-gray-600 hover:text-gray-900"
           >
-            <Edit className="w-4 h-4 text-gray-600" />
+            <Edit className="w-4 h-4" />
           </button>
         )}
-
-        <Badge variant={getDifficultyVariant(difficulty)}>
-          {difficulty}
-        </Badge>
-
-        <span className="text-gray-900 font-semibold">{points} points</span>
       </div>
     </div>
   );

@@ -143,7 +143,7 @@ const ExamDashboard: React.FC = () => {
   };
 
   const handleView = (examId: string) => {
-    router.push(`/teacher/contest/${examId}`);
+    router.push(`/teacher/contest/${examId}/manage`);
   };
 
   const handleDelete = async (examId: string) => {
