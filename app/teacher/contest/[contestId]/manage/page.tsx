@@ -19,13 +19,13 @@ const Tag: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 interface Problem {
     id: string;
     title: string;
-    difficulty: "Easy" | "Medium" | "Hard";
-    points: number;
+    difficulty: "Easy" | "Medium" | "Hard"
 }
 
 interface ContestData {
     problems: Array<{
         id: string;
+        point: number;
         problem: Problem;
     }>;
     batchContests: { id: string; name: string }[];
@@ -123,7 +123,7 @@ const DataStructureSprint: React.FC = () => {
     };
 
     const totalScore = contestData?.problems.reduce(
-        (sum, p) => sum + p.problem.points,
+        (sum, p) => sum + p.point,
         0
     ) || 0;
 
@@ -140,7 +140,7 @@ const DataStructureSprint: React.FC = () => {
     const handleAddQuestion = () => {
         router.push(`/teacher/contest/${contestId}/manage/select`);
     };
-    
+
     const handleModerators = () => {
         router.push(`/teacher/contest/${contestId}/moderators`);
     };
@@ -283,7 +283,7 @@ const DataStructureSprint: React.FC = () => {
                                     key={item.id}
                                     number={item.problem.id === "string" ? parseInt(item.id) || 1 : 1}
                                     title={item.problem.title}
-                                    points={item.problem.points}
+                                    points={item.point}
                                     difficulty={item.problem.difficulty}
                                     onClick={() => handleProblemClick(item.problem.id)}
                                     onEdit={isEditable() ? () => handleEditProblem(item.problem.id) : undefined}

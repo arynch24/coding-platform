@@ -2,129 +2,28 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Menu, Save, Check, ArrowLeft, X } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { PracticeQuestionsData, Question } from '@/types/dashboard';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import { Question } from '@/types/dashboard';
 import FilterDropdown from '@/components/FilterDropdown';
 import SearchBar from '@/components/SearchBar';
-import MobileFilters from '@/components/MobileFilters';
 import Error from '@/components/ErrorBox';
 import Loader from '@/components/Loader';
-
-// Mock data
-const mockData: PracticeQuestionsData = {
-    questions: [
-        {
-            id: '1',
-            number: 1,
-            title: 'Two Sum Variation',
-            topics: ['Array', 'Stack'],
-            difficulty: 'Easy',
-            isOwner: true,
-            isPublic: true
-        },
-        {
-            id: '2',
-            number: 2,
-            title: 'Binary Search Tree Insert',
-            topics: ['Tree', 'BST'],
-            difficulty: 'Medium',
-            isOwner: true,
-            isPublic: true
-        },
-        {
-            id: '3',
-            number: 3,
-            title: 'Maximum Subarray Sum',
-            topics: ['Array', 'Dynamic Programming'],
-            difficulty: 'Medium',
-            isOwner: true,
-            isPublic: true
-        },
-        {
-            id: '4',
-            number: 4,
-            title: 'Valid Parentheses',
-            topics: ['Stack', 'String'],
-            difficulty: 'Easy',
-            isOwner: true,
-            isPublic: true
-        },
-        {
-            id: '5',
-            number: 5,
-            title: 'Merge Intervals',
-            topics: ['Array', 'Sorting'],
-            difficulty: 'Medium',
-            isOwner: true,
-            isPublic: true
-        },
-        {
-            id: '6',
-            number: 6,
-            title: 'Longest Common Subsequence',
-            topics: ['Dynamic Programming', 'String'],
-            difficulty: 'Hard',
-            isOwner: true,
-            isPublic: true
-        },
-        {
-            id: '7',
-            number: 7,
-            title: 'Binary Tree Level Order',
-            topics: ['Tree', 'BFS'],
-            difficulty: 'Medium',
-            isOwner: true,
-            isPublic: true
-        },
-        {
-            id: '8',
-            number: 8,
-            title: 'Graph Cycle Detection',
-            topics: ['Graph', 'DFS'],
-            difficulty: 'Hard',
-            isOwner: true,
-            isPublic: true
-        },
-        {
-            id: '9',
-            number: 9,
-            title: 'Heap Sort Implementation',
-            topics: ['Heap', 'Sorting'],
-            difficulty: 'Hard',
-            isOwner: true,
-            isPublic: true
-        },
-        {
-            id: '10',
-            number: 10,
-            title: 'Palindrome Check',
-            topics: ['String', 'Two Pointers'],
-            difficulty: 'Easy',
-            isOwner: true,
-            isPublic: true
-        }
-    ]
-};
 
 // Filter options
 const difficultyOptions = ['All difficulties', 'Easy', 'Medium', 'Hard'];
 const topicOptions = [
     'All Topics',
-    'Array',
-    'String',
-    'Stack',
-    'Tree',
-    'Graph',
-    'Heap',
-    'Dynamic Programming',
-    'Sorting',
-    'BST',
-    'BFS',
-    'DFS',
-    'Two Pointers'
+    'Array', 'String', 'Stack', 'Tree', 'Graph', 'Heap',
+    'Dynamic Programming', 'Sorting', 'BST', 'BFS', 'DFS', 'Two Pointers'
 ];
 
-// Question Card Component with Checkbox
+// State type for points
+interface PointsMap {
+    [questionId: string]: number;
+}
+
+// Question Card Component
 interface QuestionCardProps {
     question: Question;
     isSelected: boolean;
@@ -144,10 +43,11 @@ const SelectableQuestionCard: React.FC<QuestionCardProps> = ({
 
     return (
         <div
-            className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${isSelected
-                ? 'border-blue-500 bg-blue-50 shadow-md'
-                : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
-                }`}
+            className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                isSelected
+                    ? 'border-blue-500 bg-blue-50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+            }`}
             onClick={() => onToggleSelect(question.id)}
         >
             <div className="flex items-center justify-between">
@@ -159,6 +59,7 @@ const SelectableQuestionCard: React.FC<QuestionCardProps> = ({
                             checked={isSelected}
                             onChange={() => onToggleSelect(question.id)}
                             className="w-5 h-5 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                            onClick={(e) => e.stopPropagation()}
                         />
                         {isSelected && (
                             <Check className="absolute top-0.5 left-0.5 w-3 h-3 text-white pointer-events-none" />
@@ -172,18 +73,15 @@ const SelectableQuestionCard: React.FC<QuestionCardProps> = ({
                                 {question.number}. {question.title}
                             </span>
                         </div>
-
-                        <div className="flex items-center space-x-2 mt-2">
-                            <div className="flex flex-wrap gap-1">
-                                {question.topics.map((topic, index) => (
-                                    <span
-                                        key={index}
-                                        className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-md"
-                                    >
-                                        {topic}
-                                    </span>
-                                ))}
-                            </div>
+                        <div className="flex flex-wrap gap-1 mt-2">
+                            {question.topics.map((topic, index) => (
+                                <span
+                                    key={index}
+                                    className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-md"
+                                >
+                                    {topic}
+                                </span>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -191,8 +89,9 @@ const SelectableQuestionCard: React.FC<QuestionCardProps> = ({
                 {/* Difficulty Badge */}
                 <div className="ml-4">
                     <span
-                        className={`px-3 py-1 text-sm font-medium rounded-full border ${difficultyColors[question.difficulty as keyof typeof difficultyColors]
-                            }`}
+                        className={`px-3 py-1 text-sm font-medium rounded-full border ${
+                            difficultyColors[question.difficulty as keyof typeof difficultyColors]
+                        }`}
                     >
                         {question.difficulty}
                     </span>
@@ -202,23 +101,38 @@ const SelectableQuestionCard: React.FC<QuestionCardProps> = ({
     );
 };
 
-// Selected Questions Summary Component
+// Selected Questions Summary with Point Input
 interface SelectedQuestionsSummaryProps {
     selectedQuestions: Set<string>;
     allQuestions: Question[];
     onRemoveQuestion: (questionId: string) => void;
     onClearAll: () => void;
+    pointsMap: PointsMap;
+    setPointsMap: (map: PointsMap) => void;
 }
 
 const SelectedQuestionsSummary: React.FC<SelectedQuestionsSummaryProps> = ({
     selectedQuestions,
     allQuestions,
     onRemoveQuestion,
-    onClearAll
+    onClearAll,
+    pointsMap,
+    setPointsMap
 }) => {
     const selectedQuestionsData = allQuestions.filter(q => selectedQuestions.has(q.id));
 
     if (selectedQuestions.size === 0) return null;
+
+    const handlePointChange = (questionId: string, value: string) => {
+        const num = parseInt(value, 10);
+        if (isNaN(num) || num < 1) {
+            setPointsMap({ ...pointsMap, [questionId]: 1 });
+        } else if (num > 10) {
+            setPointsMap({ ...pointsMap, [questionId]: 10 });
+        } else {
+            setPointsMap({ ...pointsMap, [questionId]: num });
+        }
+    };
 
     return (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -233,23 +147,35 @@ const SelectedQuestionsSummary: React.FC<SelectedQuestionsSummaryProps> = ({
                     Clear All
                 </button>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="space-y-2">
                 {selectedQuestionsData.map((question) => (
                     <div
                         key={question.id}
-                        className="flex items-center gap-2 bg-white border border-blue-300 rounded-md px-3 py-1"
+                        className="flex items-center gap-3 bg-white border border-blue-300 rounded-md px-3 py-2"
                     >
-                        <span className="text-sm font-medium">
+                        <span className="text-sm font-medium flex-1">
                             {question.number}. {question.title}
                         </span>
+                        <div className="flex items-center gap-2">
+                            <label className="text-xs text-gray-600">Points:</label>
+                            <input
+                                type="number"
+                                min="1"
+                                max="10"
+                                value={pointsMap[question.id] ?? 1}
+                                onChange={(e) => handlePointChange(question.id, e.target.value)}
+                                className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                onClick={(e) => e.stopPropagation()}
+                            />
+                        </div>
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onRemoveQuestion(question.id);
                             }}
-                            className="text-blue-600 hover:text-blue-800"
+                            className="text-red-500 hover:text-red-700"
                         >
-                            <X size={14} />
+                            <X size={16} />
                         </button>
                     </div>
                 ))}
@@ -258,146 +184,194 @@ const SelectedQuestionsSummary: React.FC<SelectedQuestionsSummaryProps> = ({
     );
 };
 
-// Main Page Component
+// Main Component
 const ContestQuestionSelectionPage: React.FC = () => {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const contestId = searchParams.get('contestId');
-    const contestName = searchParams.get('contestName') || 'New Contest';
+    const fullPath = typeof window !== "undefined" ? window.location.pathname : "";
+    const contestId = fullPath.split("/")[3]; // /teacher/contest/[id]/manage → [3]
 
-    const [questionsData, setQuestionsData] = useState<PracticeQuestionsData | null>(null);
+    const [questions, setQuestions] = useState<Question[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
 
-    // Filter states
+    // Filters
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [difficultyFilter, setDifficultyFilter] = useState<string>('All difficulties');
     const [topicFilter, setTopicFilter] = useState<string>('All Topics');
     const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
 
-    // Selection state
+    // Selection
     const [selectedQuestions, setSelectedQuestions] = useState<Set<string>>(new Set());
+    const [pointsMap, setPointsMap] = useState<PointsMap>({});
 
-    // Simulate API call to fetch questions
-    const fetchQuestionsData = async (): Promise<void> => {
-        try {
-            setIsLoading(true);
-            setError('');
-
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // In a real app, this would be:
-            // const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/questions`, {
-            //   withCredentials: true,
-            // });
-            // setQuestionsData(response.data);
-
-            setQuestionsData(mockData);
-        } catch (err: any) {
-            setError(err.message || 'Something went wrong');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
+    // Fetch questions from API
     useEffect(() => {
-        fetchQuestionsData();
+        const fetchQuestions = async () => {
+            try {
+                setIsLoading(true);
+                setError('');
+
+                const res = await axios.get<{ data: { problems: any[] } }>(
+                    `${process.env.NEXT_PUBLIC_API_URL}/problems`,
+                    { withCredentials: true }
+                );
+
+                const mappedQuestions: Question[] = res.data.data.problems.map((p, idx) => ({
+                    id: p.id,
+                    number: idx + 1,
+                    title: p.title,
+                    topics: p.tags?.map((t: { name: string }) => t.name) || [],
+                    difficulty: p.difficulty,
+                    isOwner: !!p.creator,
+                    isPublic: p.isPublic
+                }));
+
+                setQuestions(mappedQuestions);
+            } catch (err: any) {
+                console.error('Failed to fetch questions:', err);
+                setError(err.response?.data?.message || 'Failed to load questions.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchQuestions();
     }, []);
 
     // Filtered questions
     const filteredQuestions = useMemo(() => {
-        if (!questionsData) return [];
+        return questions.filter((q) => {
+            const matchesSearch =
+                !searchTerm ||
+                q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                q.number.toString().includes(searchTerm);
 
-        return questionsData.questions.filter((question) => {
-            // Search filter
-            const matchesSearch = searchTerm === '' ||
-                question.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                question.number.toString().includes(searchTerm);
+            const matchesDifficulty =
+                difficultyFilter === 'All difficulties' || q.difficulty === difficultyFilter;
 
-            // Difficulty filter
-            const matchesDifficulty = difficultyFilter === 'All difficulties' ||
-                question.difficulty === difficultyFilter;
-
-            // Topic filter
-            const matchesTopic = topicFilter === 'All Topics' ||
-                question.topics.some(topic => topic === topicFilter);
+            const matchesTopic =
+                topicFilter === 'All Topics' || q.topics.includes(topicFilter);
 
             return matchesSearch && matchesDifficulty && matchesTopic;
         });
-    }, [questionsData, searchTerm, difficultyFilter, topicFilter]);
+    }, [questions, searchTerm, difficultyFilter, topicFilter]);
 
-    // Handle question selection
+    // Toggle selection
     const handleToggleSelect = (questionId: string) => {
         setSelectedQuestions(prev => {
             const newSet = new Set(prev);
             if (newSet.has(questionId)) {
                 newSet.delete(questionId);
+                // Remove points if deselected
+                const newPoints = { ...pointsMap };
+                delete newPoints[questionId];
+                setPointsMap(newPoints);
             } else {
                 newSet.add(questionId);
+                // Default point = 1 if new
+                setPointsMap(prev => ({ ...prev, [questionId]: 1 }));
             }
             return newSet;
         });
     };
 
-    // Handle select all
     const handleSelectAll = () => {
-        if (selectedQuestions.size === filteredQuestions.length) {
-            // Deselect all
-            setSelectedQuestions(new Set());
+        const allIds = filteredQuestions.map(q => q.id);
+        const allSelected = allIds.every(id => selectedQuestions.has(id));
+
+        if (allSelected) {
+            // Deselect all filtered
+            const newSet = new Set(selectedQuestions);
+            allIds.forEach(id => {
+                newSet.delete(id);
+                const newPoints = { ...pointsMap };
+                delete newPoints[id];
+                setPointsMap(newPoints);
+            });
+            setSelectedQuestions(newSet);
         } else {
-            // Select all filtered questions
-            setSelectedQuestions(new Set(filteredQuestions.map(q => q.id)));
+            // Select all filtered
+            const newSet = new Set([...selectedQuestions, ...allIds]);
+            const newPoints = { ...pointsMap };
+            allIds.forEach(id => {
+                if (!(id in newPoints)) newPoints[id] = 1;
+            });
+            setSelectedQuestions(newSet);
+            setPointsMap(newPoints);
         }
     };
 
-    // Handle remove single question from selection
     const handleRemoveQuestion = (questionId: string) => {
         setSelectedQuestions(prev => {
             const newSet = new Set(prev);
             newSet.delete(questionId);
             return newSet;
         });
+
+        // Remove from points map
+        setPointsMap(prev => {
+            const newPoints = { ...prev };
+            delete newPoints[questionId];
+            return newPoints;
+        });
     };
 
-    // Handle clear all selections
     const handleClearAll = () => {
         setSelectedQuestions(new Set());
+        setPointsMap({});
     };
 
-    // Handle save and redirect back
+    // Save selected questions to contest
     const handleSave = async () => {
+        if (!contestId) {
+            setError('Contest ID is missing.');
+            return;
+        }
+
+        if (selectedQuestions.size === 0) {
+            alert('Please select at least one question.');
+            return;
+        }
+
+        // Validate all points are in range
+        const invalidPoint = Array.from(selectedQuestions).some(
+            id => !pointsMap[id] || pointsMap[id] < 1 || pointsMap[id] > 10
+        );
+
+        if (invalidPoint) {
+            alert('All questions must have points between 1 and 10.');
+            return;
+        }
+
         try {
             setIsSaving(true);
+            setError('');
 
-            const selectedQuestionIds = Array.from(selectedQuestions);
+            const payload = {
+                problems: Array.from(selectedQuestions).map(id => ({
+                    problemId: id,
+                    point: pointsMap[id] || 1
+                }))
+            };
 
-            // API call to save selected questions to contest
-            // const response = await axios.post(
-            //   `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/contests/${contestId}/questions`,
-            //   { questionIds: selectedQuestionIds },
-            //   { withCredentials: true }
-            // );
+            await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/contests/problem/${contestId}`,
+                payload,
+                { withCredentials: true }
+            );
 
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            console.log('Saving selected questions for contest:', contestId);
-            console.log('Selected question IDs:', selectedQuestionIds);
-
-            // Show success and redirect back to contest creation/edit page
-            alert(`Successfully added ${selectedQuestionIds.length} questions to ${contestName}!`);
-            router.back(); // or router.push('/contests/create') or wherever you want to redirect
-
+            router.back(); // Success
         } catch (err: any) {
-            setError(err.message || 'Failed to save questions');
+            console.error('Save failed:', err);
+            setError(
+                err.response?.data?.message || 'Failed to add questions to contest. Please try again.'
+            );
         } finally {
             setIsSaving(false);
         }
     };
 
-    // Handle back navigation
     const handleBack = () => {
         if (selectedQuestions.size > 0) {
             const confirmed = window.confirm('You have unsaved changes. Are you sure you want to go back?');
@@ -406,19 +380,12 @@ const ContestQuestionSelectionPage: React.FC = () => {
         router.back();
     };
 
-    // Show loading spinner while fetching data
-    if (isLoading) {
-        return <Loader text="Loading Question Bank" />;
-    }
-
-    // Show error message if there's an error
-    if (error) {
-        return <Error message={error} onRetry={fetchQuestionsData} />;
-    }
+    if (isLoading) return <Loader text="Loading Question Bank..." />;
+    if (error) return <Error message={error} onRetry={() => window.location.reload()} />;
 
     return (
-        <div className="min-h-screen">
-            <div className="max-w-7xl mx-auto  ">
+        <div className="min-h-screen bg-gray-50">
+            <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
@@ -433,7 +400,6 @@ const ContestQuestionSelectionPage: React.FC = () => {
                             <div className="h-6 w-px bg-gray-300"></div>
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-900">Select Questions</h1>
-                                <p className="text-gray-600">for "{contestName}"</p>
                             </div>
                         </div>
                         <div className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
@@ -441,24 +407,25 @@ const ContestQuestionSelectionPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Selected Questions Summary */}
+                    {/* Selected Summary with Points */}
                     <SelectedQuestionsSummary
                         selectedQuestions={selectedQuestions}
-                        allQuestions={questionsData?.questions || []}
+                        allQuestions={questions}
                         onRemoveQuestion={handleRemoveQuestion}
                         onClearAll={handleClearAll}
+                        pointsMap={pointsMap}
+                        setPointsMap={setPointsMap}
                     />
 
-                    {/* Search and Filters */}
+                    {/* Search & Filters */}
                     <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-                        <div className='flex-1 md:max-w-md'>
+                        <div className="flex-1 md:max-w-md">
                             <SearchBar
                                 searchTerm={searchTerm}
                                 onSearchChange={setSearchTerm}
                             />
                         </div>
 
-                        {/* Desktop Filters */}
                         <div className="hidden md:flex items-center gap-4">
                             <FilterDropdown
                                 options={difficultyOptions}
@@ -466,23 +433,22 @@ const ContestQuestionSelectionPage: React.FC = () => {
                                 onSelect={setDifficultyFilter}
                                 placeholder="All difficulties"
                             />
-
                             <FilterDropdown
                                 options={topicOptions}
                                 selected={topicFilter}
                                 onSelect={setTopicFilter}
                                 placeholder="All Topics"
                             />
-
                             <button
                                 onClick={handleSelectAll}
                                 className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
                             >
-                                {selectedQuestions.size === filteredQuestions.length ? 'Deselect All' : 'Select All'}
+                                {selectedQuestions.size === filteredQuestions.length
+                                    ? 'Deselect All'
+                                    : 'Select All'}
                             </button>
                         </div>
 
-                        {/* Mobile Filter Toggle */}
                         <button
                             onClick={() => setShowMobileFilters(true)}
                             className="md:hidden flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
@@ -494,8 +460,8 @@ const ContestQuestionSelectionPage: React.FC = () => {
                 </div>
 
                 {/* Questions List */}
-                <div className=" p-6">
-                    <div className="space-y-3 mb-6">
+                <div className="p-6">
+                    <div className="space-y-3">
                         {filteredQuestions.length === 0 ? (
                             <div className="text-center py-12">
                                 <p className="text-gray-500 text-lg">No questions found</p>
@@ -516,7 +482,7 @@ const ContestQuestionSelectionPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Save Button - Fixed at bottom */}
+                {/* Save Button */}
                 {selectedQuestions.size > 0 && (
                     <div className="fixed bottom-6 right-6 z-50">
                         <button
@@ -531,18 +497,6 @@ const ContestQuestionSelectionPage: React.FC = () => {
                         </button>
                     </div>
                 )}
-
-                {/* Mobile Filters Modal */}
-                {/* <MobileFilters
-                    isOpen={showMobileFilters}
-                    onClose={() => setShowMobileFilters(false)}
-                    difficultyFilter={difficultyFilter}
-                    topicFilter={topicFilter}
-                    // statusFilter={statusFilter}
-                    onDifficultyChange={setDifficultyFilter}
-                    onTopicChange={setTopicFilter}
-                    // onStatusChange={setStatusFilter}
-                /> */}
             </div>
         </div>
     );
