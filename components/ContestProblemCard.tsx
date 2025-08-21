@@ -1,4 +1,4 @@
-import Badge from "./Badge";
+import Badge from "./ui/Badge";
 import { Edit } from "lucide-react"; 
 
 interface ProblemCardProps {

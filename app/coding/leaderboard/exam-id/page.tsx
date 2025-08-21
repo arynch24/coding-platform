@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Student } from '@/types/dashboard';
-import Badge from '@/components/Badge';
+import Badge from '@/components/ui/Badge';
 import Button from '@/components/Button';
 
 interface ContestData {

@@ -212,3 +212,29 @@ export interface ApiProblemsResponse {
     problems: ApiProblem[];
   };
 }
+
+export interface Contest {
+  id: string;
+  title: string;
+  description: string;
+  startTime: Date;
+  endTime: Date;
+  isOpen: boolean;
+  batchContests: { id: string; name: string; }[];
+  contestModerators: { id: string; name: string; email: string; }[];
+  tags: { id: string; name: string; }[];
+  allowedLanguages: { id: string; name: string; }[];
+}
+
+export interface ContestFormData {
+  title: string;
+  batch: string;
+  description: string;
+  topics: string[];
+  language: string;
+  subject: string;
+  date: string;
+  time: string;
+  duration: string;
+  moderators: string[];
+}

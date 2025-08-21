@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Exam } from '@/types/dashboard';
-import Badge from '@/components/Badge';
+import Badge from '@/components/ui/Badge';
 import { useRouter } from 'next/navigation';
 import Loader from '@/components/Loader';
 import Error from '@/components/ErrorBox';

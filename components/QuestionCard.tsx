@@ -1,5 +1,5 @@
 import { Question, MenuItem } from '@/types/dashboard';
-import Badge from './Badge';
+import Badge from './ui/Badge';
 import DropdownMenu from './MenuItem';
 import { Eye, Edit, Trash, Check, User, Lock } from 'lucide-react';
 
