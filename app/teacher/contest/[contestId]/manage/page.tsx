@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, Edit, Users, Plus } from "lucide-react";
+import { ChevronLeft, Edit, Users, Plus } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import Loader from "@/components/Loader";
 import Error from "@/components/ErrorBox";
 import ProblemCard from "@/components/ContestProblemCard";
+import ModeratorDialog from "@/components/ModeratorDialog";
 
 // Tag Component
 const Tag: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -45,6 +46,9 @@ const DataStructureSprint: React.FC = () => {
     const [contestData, setContestData] = useState<ContestData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [isModeratorDialogOpen, setIsModeratorDialogOpen] = useState(false);
+
+
 
     // Extract contestId from URL path
     const path = useSearchParams();
@@ -142,13 +146,14 @@ const DataStructureSprint: React.FC = () => {
     };
 
     const handleModerators = () => {
-        router.push(`/teacher/contest/${contestId}/moderators`);
+        setIsModeratorDialogOpen(true);
     };
+
     const handleProblemClick = (problemId: string) => {
         router.push(`/question/${problemId}`);
     };
     const handleEditProblem = (problemId: string) => {
-        router.push(`/teacher/problem/${problemId}/edit`);
+        router.push(`/teacher/questions/${problemId}`);
     };
 
     if (isLoading) return <Loader text="Loading Contest Dashboard..." />;
@@ -165,17 +170,18 @@ const DataStructureSprint: React.FC = () => {
     })();
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="px-5 py-3">
             <div className="max-w-7xl mx-auto">
+                <button
+                    onClick={handleBackClick}
+                    className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-1 mb-3"
+                >
+                    <ChevronLeft size={16} className=" text-gray-600" />
+                    Back
+                </button>
                 {/* Header */}
                 <div className="flex items-start justify-between mb-8">
                     <div className="flex items-center space-x-4">
-                        <button
-                            onClick={handleBackClick}
-                            className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                        >
-                            <ArrowLeft className="w-6 h-6 text-gray-600" />
-                        </button>
                         <div>
                             <div className="flex items-center gap-3">
                                 <h1 className="text-4xl font-bold text-gray-900">{contestData.title}</h1>
@@ -199,17 +205,26 @@ const DataStructureSprint: React.FC = () => {
                 {/* Info Row */}
                 <div className="flex items-center justify-between mb-8 text-gray-900">
                     <div className="flex items-center space-x-6">
-                        <span>
-                            {new Date(contestData.startTime).toLocaleDateString()} •{" "}
-                            {new Date(contestData.startTime).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            })}{" "}–{" "}
-                            {new Date(contestData.endTime).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            })}
-                        </span>
+                        <div className="flex flex-col">
+                            <span className="text-sm text-gray-600">Date</span>
+                            <span className="font-medium">
+                                {new Date(contestData.startTime).toLocaleDateString()}
+                            </span>
+                        </div>
+
+                        <div className="flex flex-col">
+                            <span className="text-sm text-gray-600">Time</span>
+                            <span className="font-medium">
+                                {new Date(contestData.startTime).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}{" "}–{" "}
+                                {new Date(contestData.endTime).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}
+                            </span>
+                        </div>
                     </div>
 
                     <div className="flex items-center space-x-4">
@@ -294,6 +309,13 @@ const DataStructureSprint: React.FC = () => {
                     </div>
                 </div>
             </div>
+            {isModeratorDialogOpen && contestId && (
+                <ModeratorDialog
+                    contestId={contestId}
+                    isOpen={isModeratorDialogOpen}
+                    onClose={() => setIsModeratorDialogOpen(false)}
+                />
+            )}
         </div>
     );
 };

@@ -40,7 +40,7 @@ export default function CreateContestPage() {
             const contestId = data.data.contestDetail.id;
 
             // Redirect to edit page
-            router.push(`teacher/contest/${contestId}/edit`);
+            router.push(`/teacher/contest/${contestId}/edit`);
         } catch (err) {
             setError('Failed to create contest. Please try again.');
         } finally {

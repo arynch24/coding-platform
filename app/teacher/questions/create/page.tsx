@@ -20,13 +20,12 @@ const CreateQuestionPage: React.FC = () => {
 
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/problems`, {
         title: title.trim()
-      },{
+      }, {
         withCredentials: true
       });
 
-      if (response.status === 200) {
-        router.push(`/questions/${response.data.questionId}`);
-      }
+      router.push(`/teacher/questions/${response.data.data.id}`);
+
     } catch (error) {
       console.error('Error creating question:', error);
     } finally {
@@ -68,39 +67,3 @@ const CreateQuestionPage: React.FC = () => {
 };
 
 export default CreateQuestionPage;
-
-// pages/questions/[questionId]/index.tsx
-
-
-// components/questions/QuestionDetailsTab.tsx
-
-
-
-// components/questions/ModeratorsTab.tsx
-
-// components/questions/CodeStubsTab.tsx
-
-
-// Add Code Stub Modal Component
-
-
-// components/questions/AddTestCaseModal.tsx
-
-
-// components/questions/MarkdownPreview.tsx
-
-
-// components/ui/Button.tsx
-
-
-// components/ui/Input.tsx
-
-
-// components/ui/Select.tsx
-
-
-// components/ui/Tabs.tsx
-
-
-// components/ui/Modal.tsx
-
