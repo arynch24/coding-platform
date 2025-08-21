@@ -170,7 +170,7 @@ const ExamDashboard: React.FC = () => {
   }, []);
 
   const handleCreateExam = () => {
-    router.push('/teacher/create-exam');
+    router.push('/teacher/contest/create');
   };
 
   // Show loading spinner while fetching data
@@ -214,7 +214,7 @@ const ExamDashboard: React.FC = () => {
         {/* Header Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-10 mb-6">
+            <div className="flex items-center gap-10">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Upcoming Contests</h2>
                 <p className="text-gray-600 mt-1">Contests scheduled for the future</p>

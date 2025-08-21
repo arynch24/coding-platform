@@ -121,13 +121,6 @@ const PastExamRow: React.FC<PastExamRowProps> = ({
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleView}
-              className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md"
-            >
-              <Eye size={14} />
-              View
-            </button>
             <DropdownMenu items={menuItems} />
           </div>
         )}
