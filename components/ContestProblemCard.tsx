@@ -17,8 +17,8 @@ interface ProblemCardProps {
   isSolved?: boolean;
   onEdit?: () => void;
   contestProblemId: string;
-  onUpdatePoints: (id: string, points: number) => void;
-  onRemove: (id: string) => Promise<boolean>; // returns success/failure
+  onUpdatePoints?: (id: string, points: number) => void;
+  onRemove?: (id: string) => Promise<boolean>; // returns success/failure
 }
 
 const ProblemCard: React.FC<ProblemCardProps> = ({
@@ -39,6 +39,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   const [isSaving, setIsSaving] = useState(false);
 
   const handleRemoveProblem = async () => {
+    if (!onRemove) return;
     await onRemove(contestProblemId); // Already handles UI + API
   };
 
@@ -56,6 +57,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
 
     setIsSaving(true);
     try {
+      if (!onUpdatePoints) return;
       onUpdatePoints(contestProblemId, newPoints);
       setPoints(newPoints);
       setIsEditing(false);

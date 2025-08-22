@@ -43,7 +43,7 @@ const DashboardLayout = ({ children }: Readonly<{ children: React.ReactNode; }>)
                     }}
                 />
                 {/* Main Content */}
-                <div className="h-[calc(100vh-73px)] p-2 overflow-y-auto">
+                <div className="h-[calc(100vh-73px)] p-2 overflow-y-auto bg-qc-dark/3  shadow-lg ">
                     {children}
                 </div>
             </div>

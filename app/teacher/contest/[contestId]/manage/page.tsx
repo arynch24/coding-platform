@@ -55,6 +55,44 @@ const ContestManagement: React.FC = () => {
     const fullPath = typeof window !== "undefined" ? window.location.pathname : "";
     const contestId = fullPath.split("/")[3]; // /teacher/contest/[id]/manage → [3]
 
+    const [timeRemaining, setTimeRemaining] = useState<string>("--:--:--");
+
+    useEffect(() => {
+        if (!contestData) {
+            setTimeRemaining("--:--:--");
+            return;
+        }
+
+        const updateTime = () => {
+            const now = new Date();
+            const start = new Date(contestData.startTime);
+            const end = new Date(contestData.endTime);
+
+            let remainingTime: string;
+
+            if (now < start) {
+                remainingTime = formatTimeDiff(start.getTime() - now.getTime());
+            } else if (now <= end) {
+                remainingTime = formatTimeDiff(end.getTime() - now.getTime());
+            } else {
+                remainingTime = "Contest Ended";
+            }
+
+            setTimeRemaining(remainingTime);
+
+            // Return `true` if timer should continue
+            return now <= end;
+        };
+
+        // Initial call
+        const shouldContinue = updateTime();
+
+        if (!shouldContinue) return; // Stop if contest ended
+
+        const timer = setInterval(updateTime, 1000);
+        return () => clearInterval(timer);
+    }, [contestData]);
+
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -91,24 +129,8 @@ const ContestManagement: React.FC = () => {
         fetchContestData();
     }, [contestId]);
 
-    // Time Remaining Calculation
-    const getTimeRemaining = (): string => {
-        if (!contestData) return "--:--:--";
-
-        const now = new Date();
-        const start = new Date(contestData.startTime);
-        const end = new Date(contestData.endTime);
-
-        if (now < start) {
-            return formatTimeDiff(start.getTime() - now.getTime());
-        } else if (now >= start && now <= end) {
-            return formatTimeDiff(end.getTime() - now.getTime());
-        } else {
-            return "Contest Ended";
-        }
-    };
-
     const formatTimeDiff = (ms: number): string => {
+        if (ms <= 0) return "00:00:00";
         const hours = Math.floor(ms / (1000 * 60 * 60));
         const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((ms % (1000 * 60)) / 1000);
@@ -254,7 +276,7 @@ const ContestManagement: React.FC = () => {
                     </div>
 
                     <div className="text-right">
-                        <div className="text-4xl font-bold text-gray-900 mb-1">{getTimeRemaining()}</div>
+                        <div className="text-4xl font-bold text-gray-900 mb-1">{timeRemaining}</div>
                         <div className="text-gray-600 text-sm">Time remaining</div>
                     </div>
                 </div>
@@ -344,7 +366,7 @@ const ContestManagement: React.FC = () => {
 
                         <div className="flex gap-3 items-center">
                             <div className="text-right border border-gray-200 rounded-lg px-3 py-1 bg-gray-100">
-                                <div className="text-gray-900 font-bold text-lg">Total Score: {totalScore}</div>
+                                <div className="text-gray-900 font-semibold text-lg">Total Score: {totalScore}</div>
                             </div>
                             {/* Add Question Button */}
                             {isEditable() && (

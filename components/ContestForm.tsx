@@ -9,7 +9,7 @@ import { Select } from './ui/Select';
 import { Input } from './ui/Input';
 import { Textarea } from './ui/TextArea';
 import { Contest } from '@/types/dashboard';
-import { Tag } from './ui/Tag';
+import { Tag } from './ui/EditableTag';
 
 interface ContestFormProps {
     contestId: string | Promise<{ contestId: string }>;
