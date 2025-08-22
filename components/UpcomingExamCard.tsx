@@ -31,7 +31,7 @@ const UpcomingExamCard: React.FC<UpcomingExamCardProps> = ({
     role
 }) => {
     return (
-        <div className="group bg-qc-dark/95 rounded-2xl p-6 text-white min-w-[320px] w-[380px] flex-shrink-0 shadow-sm hover:shadow-lg transition-all duration-300 border border-white/10">
+        <div className="group bg-qc-dark/95 rounded-2xl p-6 text-white min-w-[320px] w-[430px] flex-shrink-0 shadow-sm hover:shadow-lg transition-all duration-300 border border-white/10">
             {/* Header Section */}
             <div className="mb-6">
                 <div className="flex justify-between items-start mb-3">
@@ -60,9 +60,7 @@ const UpcomingExamCard: React.FC<UpcomingExamCardProps> = ({
                             </div>
                         )}
                     </div>
-
                 </div>
-
             </div>
 
             {/* Tags Section */}
@@ -124,11 +122,6 @@ const UpcomingExamCard: React.FC<UpcomingExamCardProps> = ({
                     )}
                 </button>
             </div>
-
-            {/* Glow effect for live contests */}
-            {exam.live && (
-                <div className="absolute -inset-1 bg-gradient-to-r from-red-500/20 to-orange-500/20 rounded-2xl blur-sm opacity-50 group-hover:opacity-70 transition-opacity duration-300 -z-10"></div>
-            )}
         </div>
     );
 };

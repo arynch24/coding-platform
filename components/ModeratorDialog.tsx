@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { X, UserPlus, Trash2, Check } from "lucide-react";
+import { X, UserPlus, Trash2 } from "lucide-react";
 import axios from "axios";
 import Loader from "@/components/Loader";
 import ErrorBox from "@/components/ErrorBox";
@@ -156,9 +156,9 @@ const ModeratorDialog: React.FC<ModeratorDialogProps> = ({ contestId, isOpen, on
 
     return (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
                     <h2 className="text-xl font-bold text-gray-900">Manage Moderators</h2>
                     <button
                         onClick={onClose}
@@ -178,7 +178,7 @@ const ModeratorDialog: React.FC<ModeratorDialogProps> = ({ contestId, isOpen, on
                         <div className="space-y-6">
                             {/* Add Moderator Section */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-3">
+                                <label className="block font-medium text-gray-800 mb-3">
                                     Add Moderators
                                 </label>
 
@@ -186,7 +186,7 @@ const ModeratorDialog: React.FC<ModeratorDialogProps> = ({ contestId, isOpen, on
                                     <p className="text-gray-500 text-sm italic">All teachers are already added as moderators.</p>
                                 ) : (
                                     <div className="border border-gray-300 rounded-md overflow-hidden">
-                                        <div className="bg-gray-50 px-4 py-2 border-b flex items-center">
+                                        <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center">
                                             <input
                                                 type="checkbox"
                                                 checked={selectedTeacherIds.length === availableTeachers.length}
@@ -202,7 +202,7 @@ const ModeratorDialog: React.FC<ModeratorDialogProps> = ({ contestId, isOpen, on
                                                         type="checkbox"
                                                         checked={selectedTeacherIds.includes(teacher.id)}
                                                         onChange={() => toggleSelect(teacher.id)}
-                                                        className="mr-3"
+                                                        className="ml-1 mr-3"
                                                     />
                                                     <div>
                                                         <p className="font-medium text-gray-900">{teacher.name}</p>
@@ -273,16 +273,6 @@ const ModeratorDialog: React.FC<ModeratorDialogProps> = ({ contestId, isOpen, on
                             </div>
                         </div>
                     )}
-                </div>
-
-                {/* Footer */}
-                <div className="flex justify-end px-6 py-4 border-t bg-gray-50">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md font-medium"
-                    >
-                        Close
-                    </button>
                 </div>
             </div>
         </div>

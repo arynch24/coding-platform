@@ -223,7 +223,7 @@ const ExamDashboard: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide">
+          <div className="flex gap-6 pb-6 scrollbar-hide">
             {upcomingExams.map(exam => (
               <UpcomingExamCard
                 key={exam.id}

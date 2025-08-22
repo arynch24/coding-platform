@@ -5,7 +5,7 @@ import { Edit, MoreHorizontal, Trash2, Save } from "lucide-react";
 import DropdownMenu from "@/components/MenuItem";
 import { MenuItem } from "@/types/dashboard";
 import axios from "axios";
-import toast from "react-hot-toast";
+import {toast} from "sonner";
 
 interface ProblemCardProps {
   number: number;
@@ -13,7 +13,7 @@ interface ProblemCardProps {
   points: number;
   difficulty: "Easy" | "Medium" | "Hard";
   role: "teacher" | "student";
-  onClick?: () => void;
+  onClick: () => void;
   isSolved?: boolean;
   onEdit?: () => void;
   contestProblemId: string;
@@ -44,10 +44,11 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
 
   const handleSavePoints = async () => {
     const newPoints = Number(inputValue);
-    if (isNaN(newPoints) || newPoints <= 0) {
-      toast.error("Points must be a positive number");
+    if (isNaN(newPoints) || newPoints <= 0 || newPoints >10) {
+      toast.error("Points must be between 1 and 10");
       return;
     }
+
     if (newPoints === points) {
       setIsEditing(false);
       return;
@@ -55,7 +56,8 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
 
     setIsSaving(true);
     try {
-      await onUpdatePoints(contestProblemId, newPoints);
+      onUpdatePoints(contestProblemId, newPoints);
+      setPoints(newPoints);
       setIsEditing(false);
     } catch (err) {
       // Error already handled in parent, but you can log or ignore
@@ -96,11 +98,10 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   ];
 
   return (
-    <div
-      onClick={onClick}
-      className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-    >
-      <div className="flex items-center space-x-4 flex-1">
+    <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow ">
+      <div className="flex items-center space-x-4 flex-1 cursor-pointer"
+        onClick={onClick}
+        >
         <span className="font-bold text-gray-700 w-8">{number}.</span>
         <span className="font-medium text-gray-900">{title}</span>
       </div>

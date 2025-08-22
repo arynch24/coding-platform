@@ -8,7 +8,8 @@ import Loader from "@/components/Loader";
 import Error from "@/components/ErrorBox";
 import ProblemCard from "@/components/ContestProblemCard";
 import ModeratorDialog from "@/components/ModeratorDialog";
-import toast from "react-hot-toast";
+import { formatDate } from "@/lib/utils/formatDateTime";
+import { toast } from "sonner";
 
 // Tag Component
 const Tag: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -42,14 +43,12 @@ interface ContestData {
     participants: number;
 }
 
-const DataStructureSprint: React.FC = () => {
+const ContestManagement: React.FC = () => {
     const router = useRouter();
     const [contestData, setContestData] = useState<ContestData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [isModeratorDialogOpen, setIsModeratorDialogOpen] = useState(false);
-
-
 
     // Extract contestId from URL path
     const path = useSearchParams();
@@ -205,49 +204,34 @@ const DataStructureSprint: React.FC = () => {
 
     // Remove problem from contest
     const handleRemoveProblem = async (contestProblemId: string) => {
-        if (!window.confirm("Are you sure you want to remove this problem from the contest?")) {
-            return false; // cancelled
-        }
-
-        // Optimistically remove
-        setContestData((prev) =>
-            prev
-                ? {
-                    ...prev,
-                    problems: prev.problems.filter((p) => p.id !== contestProblemId),
-                }
-                : prev
-        );
-
         try {
             await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/contests/problem/${contestProblemId}`, {
                 withCredentials: true,
             });
+            setContestData((prev) =>
+                prev
+                    ? {
+                        ...prev,
+                        problems: prev.problems.filter((p) => p.id !== contestProblemId),
+                    }
+                    : prev
+            );
             toast.success("Problem removed from contest");
             return true;
         } catch (err: any) {
             // Rollback on error
             const errorMessage = err.response?.data?.message || "Failed to remove problem";
             toast.error(errorMessage);
-
-            setContestData((prev) =>
-                prev
-                    ? {
-                        ...prev,
-                        problems: [...prev.problems, prev.problems.find((p) => p.id === contestProblemId)!],
-                    }
-                    : prev
-            );
             return false;
         }
     };
 
     return (
-        <div className="px-5 py-3">
+        <div className="px-10 h-full py-3">
             <div className="max-w-7xl mx-auto">
                 <button
                     onClick={handleBackClick}
-                    className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-1 mb-3"
+                    className="p-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors flex items-center gap-1 mb-3 cursor-pointer"
                 >
                     <ChevronLeft size={16} className=" text-gray-600" />
                     Back
@@ -281,7 +265,7 @@ const DataStructureSprint: React.FC = () => {
                         <div className="flex flex-col">
                             <span className="text-sm text-gray-600">Date</span>
                             <span className="font-medium">
-                                {new Date(contestData.startTime).toLocaleDateString()}
+                                {formatDate(new Date(contestData.startTime), "short")}
                             </span>
                         </div>
 
@@ -327,39 +311,52 @@ const DataStructureSprint: React.FC = () => {
                 </div>
 
                 {/* Tags & Stats */}
-                <div className="flex items-center space-x-6 mb-8">
-                    <div className="flex items-center space-x-2">
-                        <span className="text-gray-600">Batches:</span>
-                        <Tag>{batches}</Tag>
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex gap-2 items-center">
+                        <span className="text-gray-600">Topics:</span>
+                        <span className="text-gray-300 text-sm space-x-3">
+                            {contestData.tags.map((tag) => (
+                                <Tag key={tag.id}>{tag.name}</Tag>
+                            ))}
+                        </span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                        <span className="text-gray-600">Subject:</span>
-                        <Tag>{subject}</Tag>
-                    </div>
-
-                    <div className="ml-auto text-right">
-                        <div className="text-gray-900 font-bold text-lg">Total Score: {totalScore}</div>
+                    <div className="flex gap-3">
+                        <div className="flex ml-auto  items-center space-x-2">
+                            <span className="text-gray-600">Batches:</span>
+                            <Tag>{batches}</Tag>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <span className="text-gray-600">Subject:</span>
+                            <Tag>{subject}</Tag>
+                        </div>
                     </div>
                 </div>
 
+
+
                 {/* Problems Section */}
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
                     <div className="flex justify-between items-center mb-6">
                         <div>
                             <h2 className="text-2xl font-bold text-gray-900">Problems</h2>
                             <p className="text-gray-600">Click to view or edit problems</p>
                         </div>
 
-                        {/* Add Question Button */}
-                        {isEditable() && (
-                            <button
-                                onClick={handleAddQuestion}
-                                className="flex items-center space-x-2 bg-qc-dark hover:bg-qc-dark/90 text-white px-4 py-2 rounded-lg"
-                            >
-                                <Plus className="w-4 h-4" />
-                                <span>Add Question</span>
-                            </button>
-                        )}
+                        <div className="flex gap-3 items-center">
+                            <div className="text-right border border-gray-200 rounded-lg px-3 py-1 bg-gray-100">
+                                <div className="text-gray-900 font-bold text-lg">Total Score: {totalScore}</div>
+                            </div>
+                            {/* Add Question Button */}
+                            {isEditable() && (
+                                <button
+                                    onClick={handleAddQuestion}
+                                    className="flex items-center space-x-2 bg-qc-dark hover:bg-qc-dark/90 text-white px-4 py-2 rounded-lg"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    <span>Add Question</span>
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     <div className="space-y-3">
@@ -370,7 +367,7 @@ const DataStructureSprint: React.FC = () => {
                                 title={item.problem.title}
                                 points={item.point}
                                 difficulty={item.problem.difficulty}
-                                // onClick={() => handleProblemClick(item.problem.id)}
+                                onClick={() => handleProblemClick(item.problem.id)}
                                 onEdit={isEditable() ? () => handleEditProblem(item.problem.id) : undefined}
                                 role="teacher"
                                 contestProblemId={item.id}
@@ -393,4 +390,4 @@ const DataStructureSprint: React.FC = () => {
     );
 };
 
-export default DataStructureSprint;
+export default ContestManagement;
