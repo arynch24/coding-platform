@@ -36,30 +36,33 @@ const UpcomingExamCard: React.FC<UpcomingExamCardProps> = ({
             <div className="mb-6">
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
-                        {exam.live && (
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="relative">
-                                    <div className="absolute inset-0 bg-red-400 rounded-full animate-ping opacity-75"></div>
-                                    <div className="relative bg-red-500 w-3 h-3 rounded-full"></div>
-                                </div>
-                                <span className="bg-red-500/20 backdrop-blur-sm border border-red-400/30 text-red-100 text-xs font-semibold px-3 py-1 rounded-full">
-                                    LIVE NOW
-                                </span>
-                            </div>
-                        )}
                         <h3 className="text-xl font-bold  text-white group-hover:text-gray-100 transition-colors">
                             {exam.title}
                         </h3>
+                        <p className="text-gray-200 text-sm leading-relaxed line-clamp-2">
+                            {exam.description}
+                        </p>
                     </div>
-                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-white/20">
-                        <Clock size={14} className="text-blue-200" />
-                        <span className="text-sm font-medium text-blue-100">{exam.duration}</span>
+                    <div className="">
+                        <div className="flex mb-2 items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-white/20">
+                            <Clock size={14} className="text-blue-200" />
+                            <span className="text-xs font-medium text-blue-100">{exam.duration}</span>
+                        </div>
+                        {exam.live && (
+                            <div className="flex items-center justify-end gap-2 ">
+                                <span className=" flex items-center gap-2 bg-red-500/20 backdrop-blur-sm border border-red-400/30 text-red-100 text-xs font-semibold px-3 py-1 rounded-full">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-red-400 rounded-full animate-ping opacity-75"></div>
+                                        <div className="relative bg-red-500 w-2 h-2 rounded-full"></div>
+                                    </div>
+                                    LIVE
+                                </span>
+                            </div>
+                        )}
                     </div>
+
                 </div>
 
-                <p className="text-gray-200 text-sm leading-relaxed line-clamp-2">
-                    {exam.description}
-                </p>
             </div>
 
             {/* Tags Section */}
@@ -105,8 +108,8 @@ const UpcomingExamCard: React.FC<UpcomingExamCardProps> = ({
 
                 <button
                     className={`group/btn relative overflow-hidden font-medium px-5 py-2.5 rounded-xl text-sm transition-all duration-300 transform hover:-translate-y-0.5 ${exam.live
-                            ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white shadow-lg hover:shadow-red-500/25'
-                            : 'bg-white text-gray-900 hover:bg-gray-100 shadow-lg hover:shadow-xl'
+                        ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white shadow-lg hover:shadow-red-500/25'
+                        : 'bg-white text-gray-900 hover:bg-gray-100 shadow-lg hover:shadow-xl'
                         }`}
                     onClick={role === "teacher" ? handleView : handleJoin}
                 >

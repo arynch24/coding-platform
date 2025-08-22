@@ -104,8 +104,8 @@ const LeaderboardPage = () => {
   const handlePublish = async () => {
     // Example: PATCH /contests/:id/publish
     try {
-      await axios.patch(
-        `${process.env.NEXT_PUBLIC_API_URL}/contests/${contestId}/publish`,
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_API_URL}/contests/publish/${contestId}`,
         {},
         { withCredentials: true }
       );
@@ -118,8 +118,8 @@ const LeaderboardPage = () => {
 
   const handleUnpublish = async () => {
     try {
-      await axios.patch(
-        `${process.env.NEXT_PUBLIC_API_URL}/contests/${contestId}/unpublish`,
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_API_URL}/contests/unpublish/${contestId}`,
         {},
         { withCredentials: true }
       );

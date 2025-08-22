@@ -1,4 +1,4 @@
-import { Eye, Trash, MoreVertical, Users, Award, CheckCircle, XCircle } from 'lucide-react';
+import { Eye, Trash, Users, Award, CheckCircle, XCircle } from 'lucide-react';
 import DropdownMenu from './MenuItem';
 import { MenuItem } from '@/types/dashboard';
 
@@ -52,8 +52,8 @@ const PastExamRow: React.FC<PastExamRowProps> = ({
     }`}>
       {/* Contest Details */}
       <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-qc-dark to-qc-dark/80 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md">
-          {exam.title.charAt(0).toUpperCase()}
+        <div className="flex-shrink-0 w-1 h-12 bg-gradient-to-br from-qc-dark to-qc-dark/80 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md">
+          
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthenticationContext";
 import { ContextProvider } from "@/context/DashboardContext";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "QC Auditor",
@@ -19,6 +20,7 @@ export default function RootLayout({
         <AuthProvider>
           <ContextProvider>
             {children}
+            <Toaster />
           </ContextProvider>
         </AuthProvider>
       </body>
