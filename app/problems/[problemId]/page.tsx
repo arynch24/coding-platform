@@ -302,7 +302,7 @@ const CodingProblemPage: React.FC = () => {
                         output: JSON.stringify(activeTestCase.output),
                     }],
                     code,
-                    languageId: selectedLanguage.id,
+                    languageId: selectedLanguage.language.id,   
                     languageCode: JSON.stringify(selectedLanguage.language.judge0Code),
                 },
                 { withCredentials: true }

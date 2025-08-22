@@ -7,6 +7,7 @@ import LoadingSpinner from '@/components/Loader';
 import ErrorMessage from '@/components/ErrorBox';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
+import{ User, Calendar} from 'lucide-react';
 
 // Types
 interface LeaderboardStudent {
@@ -150,10 +151,10 @@ const LeaderboardPage = () => {
       <div className="flex justify-between items-start mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{title} - Leaderboard</h1>
-          <p className="text-gray-600 mb-2">{description}</p>
+          <p className="text-gray-600 mb-4">{description}</p>
           <div className="flex gap-4 text-sm text-gray-500">
-            <span>📅 {formatDate(startDate)}</span>
-            <span>👥 {participants} participants</span>
+            <span className='flex gap-2 items-center'><Calendar size={16}/> {formatDate(startDate)}</span>
+            <span className='flex gap-2 items-center'><User size={16}/> {participants} participants</span>
           </div>
         </div>
         <div className="flex items-center gap-3">

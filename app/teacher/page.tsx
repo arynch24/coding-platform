@@ -191,10 +191,14 @@ const ExamDashboard: React.FC = () => {
   }));
 
   return (
-    <div className="p-6">
+    <div className="h-full px-4 py-6">
+
+      {/* <div className='h-[1200px] bg-qc-dark w-1'></div> */}
+
+
       {/* Header */}
       <div className="mb-4">
-        <div className="flex items-center justify-between">
+        <div className="flex  justify-between">
           <h2 className="text-2xl font-bold text-gray-900">Upcoming Contests</h2>
           <button
             onClick={handleCreateExam}
@@ -207,28 +211,30 @@ const ExamDashboard: React.FC = () => {
       </div>
 
       {/* Upcoming Exams */}
-      {upcomingExams.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 text-center shadow">
-          <p className="text-gray-600">No upcoming contests. Create one to get started.</p>
-          <button
-            onClick={handleCreateExam}
-            className="mt-4 bg-qc-dark text-white px-6 py-2 rounded"
-          >
-            Create Exam
-          </button>
-        </div>
-      ) : (
-        <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide">
-          {upcomingExams.map(exam => (
-            <UpcomingExamCard
-              key={exam.id}
-              exam={exam}
-              handleView={() => handleView(exam.id)}
-              role="teacher"
-            />
-          ))}
-        </div>
-      )}
+      <div>
+        {upcomingExams.length === 0 ? (
+          <div className="bg-white rounded-2xl p-12 text-center shadow">
+            <p className="text-gray-600">No upcoming contests. Create one to get started.</p>
+            <button
+              onClick={handleCreateExam}
+              className="mt-4 bg-qc-dark text-white px-6 py-2 rounded"
+            >
+              Create Exam
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide">
+            {upcomingExams.map(exam => (
+              <UpcomingExamCard
+                key={exam.id}
+                exam={exam}
+                handleView={() => handleView(exam.id)}
+                role="teacher"
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Past Exams */}
       <div className="mt-4">
