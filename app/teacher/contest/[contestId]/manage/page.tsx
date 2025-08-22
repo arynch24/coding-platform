@@ -8,6 +8,7 @@ import Loader from "@/components/Loader";
 import Error from "@/components/ErrorBox";
 import ProblemCard from "@/components/ContestProblemCard";
 import ModeratorDialog from "@/components/ModeratorDialog";
+import toast from "react-hot-toast";
 
 // Tag Component
 const Tag: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -169,6 +170,78 @@ const DataStructureSprint: React.FC = () => {
         return "Ended";
     })();
 
+    // Update points of a problem in contest
+    const handleUpdatePoints = async (contestProblemId: string, newPoints: number) => {
+        try {
+            const res = await axios.patch(
+                `${process.env.NEXT_PUBLIC_API_URL}/contests/problem/${contestProblemId}`,
+                {
+                    point: newPoints,
+                    contestId
+                },
+                { withCredentials: true }
+            );
+
+            const updatedPoint = res.data.data.updatedProblem.point;
+
+            // Update local state
+            setContestData((prev) =>
+                prev
+                    ? {
+                        ...prev,
+                        problems: prev.problems.map((p) =>
+                            p.id === contestProblemId ? { ...p, point: updatedPoint } : p
+                        ),
+                    }
+                    : prev
+            );
+
+            toast.success("Points updated!");
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || "Failed to update points");
+            throw err; // Re-throw for caller to handle if needed
+        }
+    };
+
+    // Remove problem from contest
+    const handleRemoveProblem = async (contestProblemId: string) => {
+        if (!window.confirm("Are you sure you want to remove this problem from the contest?")) {
+            return false; // cancelled
+        }
+
+        // Optimistically remove
+        setContestData((prev) =>
+            prev
+                ? {
+                    ...prev,
+                    problems: prev.problems.filter((p) => p.id !== contestProblemId),
+                }
+                : prev
+        );
+
+        try {
+            await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/contests/problem/${contestProblemId}`, {
+                withCredentials: true,
+            });
+            toast.success("Problem removed from contest");
+            return true;
+        } catch (err: any) {
+            // Rollback on error
+            const errorMessage = err.response?.data?.message || "Failed to remove problem";
+            toast.error(errorMessage);
+
+            setContestData((prev) =>
+                prev
+                    ? {
+                        ...prev,
+                        problems: [...prev.problems, prev.problems.find((p) => p.id === contestProblemId)!],
+                    }
+                    : prev
+            );
+            return false;
+        }
+    };
+
     return (
         <div className="px-5 py-3">
             <div className="max-w-7xl mx-auto">
@@ -290,22 +363,22 @@ const DataStructureSprint: React.FC = () => {
                     </div>
 
                     <div className="space-y-3">
-                        {contestData.problems.length === 0 ? (
-                            <p className="text-gray-500 text-center py-4">No problems added yet.</p>
-                        ) : (
-                            contestData.problems.map((item) => (
-                                <ProblemCard
-                                    key={item.id}
-                                    number={item.problem.id === "string" ? parseInt(item.id) || 1 : 1}
-                                    title={item.problem.title}
-                                    points={item.point}
-                                    difficulty={item.problem.difficulty}
-                                    onClick={() => handleProblemClick(item.problem.id)}
-                                    onEdit={isEditable() ? () => handleEditProblem(item.problem.id) : undefined}
-                                    role="teacher"
-                                />
-                            ))
-                        )}
+                        {contestData.problems.map((item, index) => (
+                            <ProblemCard
+                                key={item.id}
+                                number={index + 1}
+                                title={item.problem.title}
+                                points={item.point}
+                                difficulty={item.problem.difficulty}
+                                // onClick={() => handleProblemClick(item.problem.id)}
+                                onEdit={isEditable() ? () => handleEditProblem(item.problem.id) : undefined}
+                                role="teacher"
+                                contestProblemId={item.id}
+                                // Pass functions (not API calls)
+                                onUpdatePoints={handleUpdatePoints}
+                                onRemove={handleRemoveProblem}
+                            />
+                        ))}
                     </div>
                 </div>
             </div>
