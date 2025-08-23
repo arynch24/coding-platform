@@ -106,9 +106,7 @@ const PracticeQuestions: React.FC = () => {
   const router = useRouter();
 
   const handleQuestionClick = (questionId: string) => {
-    // router.push(`/practice/${questionId}`);
-    router.push(`/question`);
-    // console.log(`Navigate to question ${questionId}`);
+    router.push(`/problems/${questionId}`);
   };
 
   // Show loading spinner while fetching data

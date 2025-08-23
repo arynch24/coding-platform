@@ -62,23 +62,25 @@ const QCAuditSidebar: React.FC = () => {
     // Navigation items configuration
     const navigationItems: NavItem[] = [
         {
-            id: 'leaderboard',
-            label: 'Leaderboard',
-            icon: <Users size={20} />,
-            navigation: '/coding/leaderboard',
-            hasNestedRoutes: true
-        },
-        {
             id: 'exam',
             label: 'Exam',
             icon: <Trophy size={20} />,
             navigation: '/coding'
         },
         {
+            id: 'leaderboard',
+            label: 'Leaderboard',
+            icon: <Users size={20} />,
+            navigation: '/coding/leaderboard',
+            hasNestedRoutes: true
+        },
+        
+        {
             id: 'practice',
             label: 'Practice',
             icon: <FileCode2 size={20} />,
             navigation: '/coding/practice',
+            hasNestedRoutes: true
         }
     ];
 
