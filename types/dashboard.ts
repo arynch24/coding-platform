@@ -118,17 +118,22 @@ export interface MenuItem {
 }
 
 export interface ExamResult {
-    id: string;
-    examName: string;
-    subject: string;
-    dateTime: string;
-    score: number;
-    rank: number;
-    finalScore: number;
-    finalRank: number;
-    solved: number;
-    total: number;
-    feedback: string;
+  id: string;
+  examName: string;
+  description: string;
+  subject: string;
+  dateTime: string;
+  score: number;
+  rank: number;
+  finalScore: number;
+  finalRank: number;
+  solved: number;
+  total: number;
+  maximumPossibleScore: number;
+  feedback?: string;
+  startDate: string;
+  endDate: string;
+  isPublished: boolean;
 }
 
 export interface Exam {

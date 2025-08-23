@@ -201,7 +201,7 @@ const LeaderboardPage = () => {
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <span>Subject:</span>
-            <Tag variant="subject">{subject.name}</Tag>
+            <Tag variant="subject">{subject?.name || 'Open to All'}</Tag>
           </div>
           <div className="ml-auto flex items-center gap-2 text-sm text-gray-600">
             <p className="text-sm text-gray-500">Participants:</p>
