@@ -64,6 +64,7 @@ interface RunResult {
 interface SubmissionHistoryItem {
     id: string;
     status: "Accepted" | "Partially Accepted" | "Rejected";
+    // status: string;
     language: { id: string; name: string };
     executionTime: number | null;
     submittedAt: string;
@@ -71,7 +72,7 @@ interface SubmissionHistoryItem {
 }
 
 // --- Custom Hook: Polling ---
-const usePolling = <T,>(url: string | null, interval = 500) => {
+const usePolling = <T,>(url: string | null, interval = 1000) => {
     const [data, setData] = useState<T | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);

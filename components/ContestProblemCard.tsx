@@ -28,7 +28,7 @@ const ProblemCard: React.FC<ProblemCardProps> = ({
   difficulty,
   role,
   onClick,
-  isSolved = false,
+  isSolved,
   onUpdatePoints,
   contestProblemId,
   onRemove,

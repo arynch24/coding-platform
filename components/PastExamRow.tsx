@@ -1,4 +1,4 @@
-import { Eye, Trash, Users, Award, CheckCircle, XCircle } from 'lucide-react';
+import { Eye, Trash, Users, Award, CheckCircle, XCircle, Lock } from 'lucide-react';
 import DropdownMenu from './MenuItem';
 import { MenuItem } from '@/types/dashboard';
 
@@ -23,12 +23,12 @@ interface PastExamRowProps {
   handleDelete?: () => void;
 }
 
-const PastExamRow: React.FC<PastExamRowProps> = ({ 
-  exam, 
-  isLast, 
-  role, 
-  handleView, 
-  handleDelete 
+const PastExamRow: React.FC<PastExamRowProps> = ({
+  exam,
+  isLast,
+  role,
+  handleView,
+  handleDelete
 }) => {
   const menuItems: MenuItem[] = [
     {
@@ -46,14 +46,14 @@ const PastExamRow: React.FC<PastExamRowProps> = ({
     },
   ];
 
+  const isStudentAndUnpublished = role === "student" && exam.isPublished === false;
+
   return (
-    <div className={`grid grid-cols-4 gap-4 py-5 px-6 hover:bg-gray-50/50 transition-all duration-200 group ${
-      !isLast ? 'border-b border-gray-100' : ''
-    }`}>
+    <div className={`grid grid-cols-4 gap-4 py-5 px-6 hover:bg-gray-50/50 transition-all duration-200 group ${!isLast ? 'border-b border-gray-100' : ''
+      } ${isStudentAndUnpublished ? 'opacity-60' : ''}`}>
       {/* Contest Details */}
       <div className="flex items-start gap-4">
         <div className="flex-shrink-0 w-1 h-12 bg-gradient-to-br from-qc-dark to-qc-dark/80 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md">
-          
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -61,22 +61,27 @@ const PastExamRow: React.FC<PastExamRowProps> = ({
               {exam.title}
             </h4>
             {exam.isPublished !== undefined && (
-              <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                exam.isPublished 
-                  ? 'bg-green-100 text-green-700' 
+              <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${exam.isPublished
+                  ? 'bg-green-100 text-green-700'
                   : 'bg-yellow-100 text-yellow-700'
-              }`}>
+                }`}>
                 {exam.isPublished ? (
                   <CheckCircle size={10} />
                 ) : (
                   <XCircle size={10} />
                 )}
-                {exam.isPublished ? 'Published' : 'Draft'}
+                {role === "student" 
+                  ? (exam.isPublished ? 'Published' : 'Results Pending') 
+                  : (exam.isPublished ? 'Published' : 'Draft')
+                }
               </div>
             )}
           </div>
           <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
-            {exam.description}
+            {isStudentAndUnpublished 
+              ? "Results are being evaluated by your teacher. Please check back later."
+              : exam.description
+            }
           </p>
         </div>
       </div>
@@ -93,13 +98,23 @@ const PastExamRow: React.FC<PastExamRowProps> = ({
       <div className="flex items-center justify-center">
         {role === "student" ? (
           <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg px-3 py-2 text-center shadow-sm">
-              <div className="flex items-center gap-1">
-                <Award size={12} />
-                <span className="font-bold text-sm">#{exam.rank}</span>
+            {isStudentAndUnpublished ? (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-center shadow-sm">
+                <div className="flex items-center justify-center gap-1">
+                  <Lock size={12} className="text-gray-500" />
+                  <span className="font-bold text-sm text-gray-500">--</span>
+                </div>
+                <p className="text-xs text-gray-500 font-medium">Rank</p>
               </div>
-              <p className="text-xs opacity-90">Rank</p>
-            </div>
+            ) : (
+              <div className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 text-center shadow-sm">
+                <div className="flex items-center gap-1">
+                  <Award size={12} className="text-blue-600" />
+                  <span className="font-bold text-sm text-blue-800">#{exam.rank}</span>
+                </div>
+                <p className="text-xs text-blue-600 font-medium">Rank</p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-2 text-center min-w-[80px]">
@@ -116,8 +131,20 @@ const PastExamRow: React.FC<PastExamRowProps> = ({
       <div className="flex items-center justify-center">
         {role === "student" ? (
           <div className="bg-gray-50 border border-gray-100 rounded-lg px-4 py-2 text-center min-w-[70px]">
-            <div className="font-bold text-sm text-gray-900 mb-1">{exam.solved}</div>
-            <p className="text-xs text-gray-600">Solved</p>
+            {isStudentAndUnpublished ? (
+              <>
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Lock size={12} className="text-gray-500" />
+                  <span className="font-bold text-sm text-gray-500">--</span>
+                </div>
+                <p className="text-xs text-gray-500">Pending</p>
+              </>
+            ) : (
+              <>
+                <div className="font-bold text-sm text-gray-900 mb-1">{exam.solved}</div>
+                <p className="text-xs text-gray-600">Solved</p>
+              </>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-2">

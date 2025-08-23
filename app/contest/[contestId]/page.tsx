@@ -11,20 +11,17 @@ import { formatDate } from "@/lib/utils/formatDateTime";
 import { toast } from "sonner";
 import Tag from "@/components/ui/Tag";
 
-
 // Types from API
 interface Problem {
   id: string;
   title: string;
-  difficulty: "Easy" | "Medium" | "Hard"
+  difficulty: "Easy" | "Medium" | "Hard",
+  point: number;
+  isSolved: boolean;
 }
 
 interface ContestData {
-  problems: Array<{
-    id: string;
-    point: number;
-    problem: Problem;
-  }>;
+  problems: Problem[];
   batchContests: { id: string; name: string }[];
   contestModerators: { id: string; name: string; email: string }[];
   tags: { id: string; name: string }[];
@@ -258,16 +255,17 @@ const StudentContest: React.FC = () => {
           </div>
 
           <div className="space-y-3">
-            {contestData.problems.map((item, index) => (
+            {contestData.problems.map((problem, index) => (
               <ProblemCard
-                key={item.id}
+                key={problem.id}
                 number={index + 1}
-                title={item.problem.title}
-                points={item.point}
-                difficulty={item.problem.difficulty}
-                onClick={() => handleProblemClick(item.problem.id)}
+                title={problem.title}
+                points={problem.point}
+                difficulty={problem.difficulty}
+                onClick={() => handleProblemClick(problem.id)}
                 role="student"
-                contestProblemId={item.id}
+                contestProblemId={problem.id}
+                isSolved={problem.isSolved}
               />
             ))}
           </div>
