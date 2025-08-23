@@ -10,92 +10,7 @@ import QuestionCard from '@/components/QuestionCard';
 import MobileFilters from '@/components/MobileFilters';
 import Error from '@/components/ErrorBox';
 import Loader from '@/components/Loader';
-
-// Mock data
-const mockData: PracticeQuestionsData = {
-  questions: [
-    {
-      id: '1',
-      number: 1,
-      title: 'Two Sum Variation',
-      topics: ['Array', 'Stack'],
-      difficulty: 'Easy',
-      isSolved: false
-    },
-    {
-      id: '2',
-      number: 2,
-      title: 'Binary Search Tree Insert',
-      topics: ['Tree', 'BST'],
-      difficulty: 'Medium',
-      isSolved: false
-    },
-    {
-      id: '3',
-      number: 3,
-      title: 'Maximum Subarray Sum',
-      topics: ['Array', 'Dynamic Programming'],
-      difficulty: 'Medium',
-      isSolved: false
-    },
-    {
-      id: '4',
-      number: 4,
-      title: 'Valid Parentheses',
-      topics: ['Stack', 'String'],
-      difficulty: 'Easy',
-      isSolved: true
-    },
-    {
-      id: '5',
-      number: 5,
-      title: 'Merge Intervals',
-      topics: ['Array', 'Sorting'],
-      difficulty: 'Medium',
-      isSolved: true
-    },
-    {
-      id: '6',
-      number: 6,
-      title: 'Longest Common Subsequence',
-      topics: ['Dynamic Programming', 'String'],
-      difficulty: 'Hard',
-      isSolved: false
-    },
-    {
-      id: '7',
-      number: 7,
-      title: 'Binary Tree Level Order',
-      topics: ['Tree', 'BFS'],
-      difficulty: 'Medium',
-      isSolved: false
-    },
-    {
-      id: '8',
-      number: 8,
-      title: 'Graph Cycle Detection',
-      topics: ['Graph', 'DFS'],
-      difficulty: 'Hard',
-      isSolved: false
-    },
-    {
-      id: '9',
-      number: 9,
-      title: 'Heap Sort Implementation',
-      topics: ['Heap', 'Sorting'],
-      difficulty: 'Hard',
-      isSolved: false
-    },
-    {
-      id: '10',
-      number: 10,
-      title: 'Palindrome Check',
-      topics: ['String', 'Two Pointers'],
-      difficulty: 'Easy',
-      isSolved: true
-    }
-  ]
-};
+import axios from 'axios';
 
 // Filter options
 const difficultyOptions = ['All difficulties', 'Easy', 'Medium', 'Hard'];
@@ -115,10 +30,23 @@ const topicOptions = [
   'Two Pointers'
 ];
 
+// Helper function to transform API data to component format
+const transformApiData = (apiData: any): PracticeQuestionsData => {
+  return {
+    questions: apiData.data.problems.map((problem: any, index: number) => ({
+      id: problem.id,
+      number: index + 1, // Since API doesn't provide number, using index
+      title: problem.title,
+      topics: problem.problemTags.map((tag: any) => tag.name),
+      difficulty: problem.difficulty,
+      isSolved: problem.isSolved,
+      creator: problem.creator,
+    }))
+  };
+};
 
 // Main Component
 const PracticeQuestions: React.FC = () => {
-  // const router = useRouter();
   const [questionsData, setQuestionsData] = useState<PracticeQuestionsData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -129,22 +57,19 @@ const PracticeQuestions: React.FC = () => {
   const [topicFilter, setTopicFilter] = useState<string>('All Topics');
   const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
 
-  // Simulate API call
+  // API call to fetch questions
   const fetchQuestionsData = async (): Promise<void> => {
     try {
       setIsLoading(true);
       setError('');
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/students/problems`, {
+        withCredentials: true,
+      });
 
-      // In a real app, this would be:
-      // const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/questions`, {
-      //   withCredentials: true,
-      // });
-      // setQuestionsData(response.data);
-
-      setQuestionsData(mockData);
+      const transformedData = transformApiData(response.data);
+      console.log(transformedData);
+      setQuestionsData(transformedData);
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
     } finally {
@@ -257,14 +182,14 @@ const PracticeQuestions: React.FC = () => {
         </div>
 
         {/* Mobile Filters Modal */}
-        <MobileFilters
+        {/* <MobileFilters
           isOpen={showMobileFilters}
           onClose={() => setShowMobileFilters(false)}
           difficultyFilter={difficultyFilter}
           topicFilter={topicFilter}
           onDifficultyChange={setDifficultyFilter}
           onTopicChange={setTopicFilter}
-        />
+        /> */}
       </div>
     </div>
   );

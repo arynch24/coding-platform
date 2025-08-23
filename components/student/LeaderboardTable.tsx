@@ -78,7 +78,7 @@ const ExamTable: React.FC<{
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      onFeedbackClick(result.feedback, e);
+                      onFeedbackClick(result.feedback || '', e);
                     }}
                     className="bg-gray-800 text-white px-3 py-2 rounded-md text-xs font-medium hover:bg-gray-900 transition-colors flex items-center justify-center gap-1 min-w-[40px] h-8"
                   >
