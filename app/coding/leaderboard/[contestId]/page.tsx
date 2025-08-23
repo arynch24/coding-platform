@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Button from '@/components/Button';
-import { Modal, ActionsModal, ActionButton } from '@/components/Modal';
 import LoadingSpinner from '@/components/Loader';
 import ErrorMessage from '@/components/ErrorBox';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Tag from '@/components/ui/Tag';
 import { formatDate } from '@/lib/utils/formatDateTime';
+import { User } from 'lucide-react';
 
 // Types
 interface LeaderboardStudent {
@@ -37,6 +36,10 @@ interface ContestLeaderboardData {
     id: string;
     name: string;
   }
+  creator: {
+    id: string;
+    name: string;
+  };
   leaderboard: LeaderboardStudent[];
 }
 
@@ -44,7 +47,6 @@ const LeaderboardPage = () => {
   const [data, setData] = useState<ContestLeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<LeaderboardStudent | null>(null);
 
   const router = useRouter();
@@ -85,48 +87,8 @@ const LeaderboardPage = () => {
     fetchLeaderboardData();
   }, [contestId]);
 
-  const handleActionClick = (student: LeaderboardStudent) => {
-    setSelectedStudent(student);
-    setIsModalOpen(true);
-  };
-
-  const handleActionSave = async (actionData: any) => {
-    console.log('Action saved for student:', selectedStudent?.studentName, actionData);
-    // In real app: API call to save action
-    setIsModalOpen(false);
-  };
-
   const handleRetry = () => {
     fetchLeaderboardData();
-  };
-
-  const handlePublish = async () => {
-    // Example: PATCH /contests/:id/publish
-    try {
-      await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL}/contests/publish/${contestId}`,
-        {},
-        { withCredentials: true }
-      );
-      setData(prev => prev ? { ...prev, isPublished: true } : prev);
-      alert('Exam published successfully!');
-    } catch (err: any) {
-      alert('Failed to publish exam: ' + (err.response?.data?.message || 'Unknown error'));
-    }
-  };
-
-  const handleUnpublish = async () => {
-    try {
-      await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL}/contests/unpublish/${contestId}`,
-        {},
-        { withCredentials: true }
-      );
-      setData(prev => prev ? { ...prev, isPublished: false } : prev);
-      alert('Exam unpublished successfully!');
-    } catch (err: any) {
-      alert('Failed to unpublish exam: ' + (err.response?.data?.message || 'Unknown error'));
-    }
   };
 
   if (loading) {
@@ -141,7 +103,7 @@ const LeaderboardPage = () => {
     return <ErrorMessage message="No leaderboard data found." onRetry={handleRetry} />;
   }
 
-  const { title, description, batches, subject, startDate, isPublished, endDate, maximumPossibleScore, totalQuestions, leaderboard } = data;
+  const { title, description, batches, subject, startDate, creator, endDate, maximumPossibleScore, totalQuestions, leaderboard } = data;
   const participants = leaderboard.length;
   return (
     <div className="p-6">
@@ -152,14 +114,9 @@ const LeaderboardPage = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{title} - Leaderboard</h1>
             <p className="text-gray-600 mb-4">{description}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="primary"
-              onClick={isPublished ? handleUnpublish : handlePublish}
-              disabled={loading}
-            >
-              {isPublished ? 'Unpublish Exam' : 'Publish Exam'}
-            </Button>
+          <div className="flex items-center gap-2 mt-2 tex-sm text-gray-500">
+            <User size={14} className="text-blue-600" />
+            <span> By {creator.name}</span>
           </div>
         </div>
 
@@ -208,7 +165,6 @@ const LeaderboardPage = () => {
             <Tag variant="topic">{participants}</Tag>
           </div>
         </div>
-
       </div>
 
       <div className='bg-white rounded-lg shadow-md border border-gray-200 p-6'>
@@ -226,7 +182,6 @@ const LeaderboardPage = () => {
                   <th className="p-4 font-medium text-gray-700">Student</th>
                   <th className="p-4 font-medium text-gray-700">Score</th>
                   <th className="p-4 font-medium text-gray-700">Questions Solved</th>
-                  <th className="p-4 font-medium text-gray-700">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white">
@@ -252,9 +207,6 @@ const LeaderboardPage = () => {
                     <td className="p-4 ">
                       <span className="w-full font-medium text-gray-900">{student.questionsSolved}</span>
                     </td>
-                    <td className="p-4">
-                      <ActionButton onClick={() => handleActionClick(student)} />
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -262,17 +214,6 @@ const LeaderboardPage = () => {
           </div>
         )}
       </div>
-
-      {/* Actions Modal */}
-      {isModalOpen && selectedStudent && (
-        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-          <ActionsModal
-            studentName={selectedStudent.studentName}
-            onSave={handleActionSave}
-            onClose={() => setIsModalOpen(false)}
-          />
-        </Modal>
-      )}
     </div>
   );
 };

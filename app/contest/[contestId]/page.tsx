@@ -159,116 +159,114 @@ const StudentContest: React.FC = () => {
   })();
 
   return (
-    <div className="px-10 h-full py-3">
-      <div className="max-w-7xl mx-auto">
-        <button
-          onClick={handleBackClick}
-          className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-        >
-          <ChevronLeft size={16} />
-          Back
-        </button>
+    <div className="p-10 max-w-7xl mx-auto">
+      <button
+        onClick={handleBackClick}
+        className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+      >
+        <ChevronLeft size={16} />
+        Back
+      </button>
 
-        {/* Main Card */}
-        <div className="my-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          {/* Header */}
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex  gap-3">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{contestData.title}</h1>
-                <p className="text-gray-600 mt-1">{contestData.description}</p>
-                <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
-                  <User size={14} className="text-gray-400" />
-                  <span>by {contestData.creator.name}</span>
-                </div>
-              </div>
-              <div className="mt-1">
-                <Tag variant="status">{contestStatus}</Tag>
+      {/* Main Card */}
+      <div className="my-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex  gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{contestData.title}</h1>
+              <p className="text-gray-600 mt-1">{contestData.description}</p>
+              <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                <User size={14} className="text-gray-400" />
+                <span>by {contestData.creator.name}</span>
               </div>
             </div>
-            <div className="ml-auto flex flex-col items-center gap-1 text-right">
-              <div className=" text-gray-900 mb-1">Time Remaining:</div>
-              <div className="bg-gray-100 border border-gray-200 rounded-lg px-4 py-2">
-                <span className="font-mono font-bold text-lg text-gray-800">{timeRemaining}</span>
-              </div>
+            <div className="mt-1">
+              <Tag variant="status">{contestStatus}</Tag>
             </div>
           </div>
-
-          {/* Info Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div>
-              <p className="text-sm text-gray-500">Date</p>
-              <p className="font-medium">{formatDate(new Date(contestData.startTime), "short")}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Time</p>
-              <p className="font-medium">
-                {new Date(contestData.startTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}{" "}
-                –{" "}
-                {new Date(contestData.endTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Topics</p>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {contestData.tags.map((tag) => (
-                  <Tag key={tag.id} variant="topic">{tag.name}</Tag>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Allowed Languages</p>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {contestData.allowedLanguages.map((lang) => (
-                  <Tag key={lang.id} variant="language">{lang.name}</Tag>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Batches & Subject */}
-          <div className="flex flex-wrap gap-4 items-center pt-4 border-t border-gray-200">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span>Batches:</span>
-              <Tag variant="batch">{batches}</Tag>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span>Subject:</span>
-              <Tag variant="subject">{subject}</Tag>
+          <div className="ml-auto flex flex-col items-center gap-1 text-right">
+            <div className=" text-gray-900 mb-1">Time Remaining:</div>
+            <div className="bg-gray-100 border border-gray-200 rounded-lg px-4 py-2">
+              <span className="font-mono font-bold text-lg text-gray-800">{timeRemaining}</span>
             </div>
           </div>
         </div>
 
-        {/* Problems Section */}
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Problems</h2>
-              <p className="text-gray-600">Click on a problem to start solving</p>
-            </div>
-
-            <div className="flex gap-3 items-center">
-              <div className="text-right border border-gray-200 rounded-lg px-3 py-1 bg-gray-100">
-                <div className="text-gray-900 font-semibold text-lg">Total Score: {totalScore}</div>
-              </div>
+        {/* Info Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div>
+            <p className="text-sm text-gray-500">Date</p>
+            <p className="font-medium">{formatDate(new Date(contestData.startTime), "short")}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Time</p>
+            <p className="font-medium">
+              {new Date(contestData.startTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}{" "}
+              –{" "}
+              {new Date(contestData.endTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Topics</p>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {contestData.tags.map((tag) => (
+                <Tag key={tag.id} variant="topic">{tag.name}</Tag>
+              ))}
             </div>
           </div>
-
-          <div className="space-y-3">
-            {contestData.problems.map((problem, index) => (
-              <ProblemCard
-                key={problem.id}
-                number={index + 1}
-                title={problem.title}
-                points={problem.point}
-                difficulty={problem.difficulty}
-                onClick={() => handleProblemClick(problem.id)}
-                role="student"
-                contestProblemId={problem.id}
-                isSolved={problem.isSolved}
-              />
-            ))}
+          <div>
+            <p className="text-sm text-gray-500">Allowed Languages</p>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {contestData.allowedLanguages.map((lang) => (
+                <Tag key={lang.id} variant="language">{lang.name}</Tag>
+              ))}
+            </div>
           </div>
+        </div>
+
+        {/* Batches & Subject */}
+        <div className="flex flex-wrap gap-4 items-center pt-4 border-t border-gray-200">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span>Batches:</span>
+            <Tag variant="batch">{batches}</Tag>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span>Subject:</span>
+            <Tag variant="subject">{subject}</Tag>
+          </div>
+        </div>
+      </div>
+
+      {/* Problems Section */}
+      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Problems</h2>
+            <p className="text-gray-600">Click on a problem to start solving</p>
+          </div>
+
+          <div className="flex gap-3 items-center">
+            <div className="text-right border border-gray-200 rounded-lg px-3 py-1 bg-gray-100">
+              <div className="text-gray-900 font-semibold text-lg">Total Score: {totalScore}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {contestData.problems.map((problem, index) => (
+            <ProblemCard
+              key={problem.id}
+              number={index + 1}
+              title={problem.title}
+              points={problem.point}
+              difficulty={problem.difficulty}
+              onClick={() => handleProblemClick(problem.id)}
+              role="student"
+              contestProblemId={problem.id}
+              isSolved={problem.isSolved}
+            />
+          ))}
         </div>
       </div>
     </div>

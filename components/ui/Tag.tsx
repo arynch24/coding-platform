@@ -1,7 +1,7 @@
 // components/Tag.tsx
 import React from "react";
 
-export type TagVariant = "status" | "difficulty" | "language" | "topic" | "batch" | "subject";
+export type TagVariant = "status" | "difficulty" | "language" | "topic" | "batch" | "subject"| "score";
 
 interface TagProps {
   children: React.ReactNode;
@@ -19,6 +19,7 @@ const Tag: React.FC<TagProps> = ({ children, variant = "topic", className = "" }
     topic: "bg-gray-100 text-gray-800",
     batch: "bg-purple-100 text-purple-800",
     subject: "bg-indigo-100 text-indigo-800",
+    score: "bg-yellow-100 text-yellow-800",
   };
 
   return (
