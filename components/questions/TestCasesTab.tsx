@@ -107,9 +107,11 @@ export const TestCasesTab: React.FC<TestCasesTabProps> = ({
         try {
             setIsLoading(true);
 
+            
+            
             // Generate unique filenames
-            const inputFilename = `input_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.txt`;
-            const outputFilename = `output_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.txt`;
+            const inputFilename = testCaseData.inputFile.name;
+            const outputFilename = testCaseData.outputFile.name;
 
             // Get presigned URLs
             const presignResponse = await axios.post(

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ChevronLeft, Plus, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { toast } from "sonner";
 
 // Reusable Button Component
 interface ButtonProps {
@@ -222,7 +223,7 @@ const CreateNewExam: React.FC = () => {
 
     const handleSubmit = () => {
         console.log('Form submitted:', formData);
-        alert('Exam created successfully!');
+        toast.success('Exam created successfully!');
     };
 
     const addModerator = () => {

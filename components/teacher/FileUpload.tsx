@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Upload } from 'lucide-react';
 import { TestCase } from '@/types/dashboard';
+import { toast } from "sonner";
 
 interface FileUploadProps {
   onUpload: (testCases: TestCase[]) => void;
@@ -19,12 +20,12 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload, disabled = false }) =
           const parsedTestCases = JSON.parse(content) as TestCase[];
           onUpload(parsedTestCases);
         } catch (error) {
-          alert('Error parsing JSON file. Please check the format.');
+          toast.error('Error parsing JSON file. Please check the format.');
         }
       };
       reader.readAsText(file);
     } else {
-      alert('Please upload a JSON file with test cases.');
+      toast.info('Please upload a JSON file with test cases.');
     }
   };
 

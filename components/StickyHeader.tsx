@@ -47,10 +47,10 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ profile, header }) => {
                                     {profile.role.replace(/\b\w/g, char => char.toUpperCase())}
                                 </p>
                             </div>
-                            <ChevronDown
+                            {/* <ChevronDown
                                 className={`h-4 w-4 transition-transform text-qc-accent ${isProfileOpen ? 'rotate-180' : ''
                                     }`}
-                            />
+                            /> */}
                         </button>
 
                         {/* <ProfileCard
@@ -59,6 +59,8 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ profile, header }) => {
                             onClose={closeProfile}
                         /> */}
                     </div>
+
+                    
                 </div>
             </div>
         </header>

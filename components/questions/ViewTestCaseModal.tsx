@@ -49,7 +49,7 @@ const ViewTestCaseModal: React.FC<ViewTestCaseModalProps> = ({ testCase, onClose
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Weight
@@ -72,7 +72,7 @@ const ViewTestCaseModal: React.FC<ViewTestCaseModalProps> = ({ testCase, onClose
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
                             />
                         </div>
-                        <div>
+                        {/* <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 ID
                             </label>
@@ -82,7 +82,7 @@ const ViewTestCaseModal: React.FC<ViewTestCaseModalProps> = ({ testCase, onClose
                                 readOnly
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-xs"
                             />
-                        </div>
+                        </div> */}
                     </div>
 
                     {testCase.explanation && (

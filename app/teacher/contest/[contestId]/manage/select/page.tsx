@@ -9,6 +9,7 @@ import FilterDropdown from '@/components/FilterDropdown';
 import SearchBar from '@/components/SearchBar';
 import Error from '@/components/ErrorBox';
 import Loader from '@/components/Loader';
+import { toast } from "sonner";
 
 // Filter options
 const difficultyOptions = ['All difficulties', 'Easy', 'Medium', 'Hard'];
@@ -330,7 +331,7 @@ const ContestQuestionSelectionPage: React.FC = () => {
         }
 
         if (selectedQuestions.size === 0) {
-            alert('Please select at least one question.');
+            toast.info('Please select at least one question.');
             return;
         }
 
@@ -340,7 +341,7 @@ const ContestQuestionSelectionPage: React.FC = () => {
         );
 
         if (invalidPoint) {
-            alert('All questions must have points between 1 and 10.');
+            toast.info('All questions must have points between 1 and 10.');
             return;
         }
 

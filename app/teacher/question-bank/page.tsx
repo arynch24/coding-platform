@@ -12,6 +12,7 @@ import Error from '@/components/ErrorBox';
 import Loader from '@/components/Loader';
 import { Plus } from 'lucide-react';
 import axios from 'axios';
+import { toast } from "sonner";
 
 // Transform API response to match frontend Question type
 const transformApiQuestion = (apiQuestion: any, currentUserId: string): Question => {
@@ -108,14 +109,14 @@ const PracticeQuestions: React.FC = () => {
   }, [questionsData, searchTerm, difficultyFilter, topicFilter, statusFilter]);
 
   const handleQuestionClick = (questionId: string) => {
-    router.push(`/question/${questionId}`);
+    router.push(`/problems/${questionId}`);
   };
 
   const handleDelete = async (questionId: string) => {
     const question = questionsData.find(q => q.id === questionId);
 
     if (!question?.isOwner) {
-      alert(`This question was created by ${question?.creator?.name || 'another teacher'}. You can only delete questions you've created.`);
+      toast.info(`This question was created by ${question?.creator?.name || 'another teacher'}. You can only delete questions you've created.`);
       return;
     }
 
@@ -131,7 +132,7 @@ const PracticeQuestions: React.FC = () => {
       // Refresh questions after successful deletion
       await fetchQuestionsData();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to delete question');
+      toast.error(err.response?.data?.message || 'Failed to delete question');
     }
   };
 
@@ -139,7 +140,7 @@ const PracticeQuestions: React.FC = () => {
     const question = questionsData.find(q => q.id === questionId);
 
     if (!question?.isOwner) {
-      alert(`This question was created by ${question?.creator?.name || 'another teacher'}. You can only edit questions you've created. Contact them if you need changes.`);
+      toast.info(`This question was created by ${question?.creator?.name || 'another teacher'}. You can only edit questions you've created. Contact them if you need changes.`);
       return;
     }
 

@@ -9,6 +9,8 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Tag from '@/components/ui/Tag';
 import { formatDate } from '@/lib/utils/formatDateTime';
+import { toast } from "sonner";
+
 
 // Types
 interface LeaderboardStudent {
@@ -109,23 +111,23 @@ const LeaderboardPage = () => {
         { withCredentials: true }
       );
       setData(prev => prev ? { ...prev, isPublished: true } : prev);
-      alert('Exam published successfully!');
+      toast.success('Exam published successfully!');
     } catch (err: any) {
-      alert('Failed to publish exam: ' + (err.response?.data?.message || 'Unknown error'));
+      toast.error('Failed to publish exam: ' + (err.response?.data?.message || 'Unknown error'));
     }
   };
 
   const handleUnpublish = async () => {
     try {
       await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL}/contests/unpublish/${contestId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/contests/publish/${contestId}`,
         {},
         { withCredentials: true }
       );
       setData(prev => prev ? { ...prev, isPublished: false } : prev);
-      alert('Exam unpublished successfully!');
+      toast.success('Exam unpublished successfully!');
     } catch (err: any) {
-      alert('Failed to unpublish exam: ' + (err.response?.data?.message || 'Unknown error'));
+      toast.error('Failed to unpublish exam: ' + (err.response?.data?.message || 'Unknown error'));
     }
   };
 

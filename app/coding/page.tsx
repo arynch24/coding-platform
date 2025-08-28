@@ -31,7 +31,7 @@ interface ApiUpcomingContest {
 }
 
 interface ApiPastContest {
-  contest_id: string;
+  contestId: string;
   title: string;
   description: string;
   startDate: string | Date;
@@ -147,7 +147,7 @@ const StudentExamDashboard: React.FC = () => {
 
   // Transform past exams data for display
   const pastExams = dashboardData.pastExams.map(exam => ({
-    id: exam.contest_id,
+    id: exam.contestId,
     title: exam.title,
     description: exam.description,
     date: formatDate(exam.startDate),
@@ -206,8 +206,8 @@ const StudentExamDashboard: React.FC = () => {
              {pastExams.map((exam, index) => (
                 <div 
                   key={exam.id} 
-                  onClick={exam.isPublished ? () => handleViewPastExam(exam.id) : undefined} 
-                  className={exam.isPublished ? 'cursor-pointer' : 'cursor-not-allowed'}
+                  onClick={ () => handleViewPastExam(exam.id) } 
+                  className={'cursor-pointer' }
                 >
                   <PastExamRow
                     exam={exam}

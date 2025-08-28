@@ -172,7 +172,7 @@ const ContestManagement: React.FC = () => {
     };
 
     const handleProblemClick = (problemId: string) => {
-        router.push(`/question/${problemId}`);
+        router.push(`/problems/${problemId}`);
     };
     const handleEditProblem = (problemId: string) => {
         router.push(`/teacher/questions/${problemId}`);
@@ -307,16 +307,16 @@ const ContestManagement: React.FC = () => {
                     </div>
 
                     <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2 bg-qc-dark px-4 py-2 rounded-lg">
+                        {/* <div className="flex items-center space-x-2 bg-qc-dark px-4 py-2 rounded-lg">
                             <Users className="w-4 h-4 text-gray-200" />
                             <span className="font-medium text-gray-100">{contestData.participants || 0}</span>
-                        </div>
+                        </div> */}
                         <button
                             onClick={handleModerators}
                             className="flex items-center space-x-2 bg-qc-dark hover:bg-qc-dark/90 text-white px-4 py-2 rounded-lg"
                         >
                             <Users className="w-4 h-4" />
-                            <span>Moderators ({moderatorsCount})</span>
+                            <span>Moderators</span>
                         </button>
 
                         {/* Edit Contest Button (only if editable) */}

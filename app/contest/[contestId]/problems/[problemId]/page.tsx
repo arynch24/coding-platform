@@ -2,6 +2,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Play, Upload, TriangleAlert, GripVertical, Plus, X, CheckCircle, XCircle, AlertCircle, Clock, Eye, EyeOff, Trash2, Code, List } from 'lucide-react';
 import { useParams } from 'next/navigation';
+import MonacoEditor from '@/components/MonacoEditor';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { parseMarkdown } from '@/lib/utils/parseMarkdown';
+import { toast } from "sonner";
 
 // --- Types ---
 interface Language {
@@ -48,11 +53,11 @@ interface RunResult {
     result?: {
         runId: string;
         totalTestCases: number;
-        passedTestCases: number; // ← should be number, not boolean
+        passedTestCases: number;
         results: Array<{
             status: string;
             output: string;
-            expectedOutput?: string; // ← Add this
+            expectedOutput?: string;
             executionTime?: number;
             memory?: number;
             passed?: boolean;
@@ -64,9 +69,9 @@ interface RunResult {
 interface SubmissionHistoryItem {
     id: string;
     status: "Accepted" | "Partially Accepted" | "Rejected";
-    // status: string;
     language: { id: string; name: string };
     executionTime: number | null;
+    memoryUsed: number | null;
     submittedAt: string;
     code: string;
 }
@@ -76,15 +81,12 @@ const usePolling = <T,>(url: string | null, interval = 1000) => {
     const [data, setData] = useState<T | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
     const pollUrlRef = useRef<string | null>(null);
     const timeoutRef = useRef<number | null>(null);
 
     useEffect(() => {
-        // Only start polling if URL is provided and different from previous
         if (!url || url === pollUrlRef.current) return;
 
-        // Cancel any existing poll
         if (timeoutRef.current) {
             window.clearTimeout(timeoutRef.current);
         }
@@ -103,12 +105,10 @@ const usePolling = <T,>(url: string | null, interval = 1000) => {
                 });
                 const result = await res.json();
                 const runData = result.data;
-
                 setData(runData);
 
-                // Stop if done or failed
                 if (runData.status === "Done" || runData.status === "Failed") {
-                    pollUrlRef.current = null; // Allow future polls
+                    pollUrlRef.current = null;
                     return;
                 }
 
@@ -126,7 +126,6 @@ const usePolling = <T,>(url: string | null, interval = 1000) => {
             }
         };
 
-        // Start first poll
         poll();
 
         return () => {
@@ -136,7 +135,7 @@ const usePolling = <T,>(url: string | null, interval = 1000) => {
                 timeoutRef.current = null;
             }
         };
-    }, [url, interval]); // Only react to URL or interval change
+    }, [url, interval]);
 
     return { data, loading, error };
 };
@@ -160,18 +159,15 @@ const CodingProblemPage = () => {
     const [outputValue, setOutputValue] = useState('');
     const [testCaseView, setTestCaseView] = useState<'testcases' | 'result'>('testcases');
     const [showSampleOnly, setShowSampleOnly] = useState(false);
-
     const editorRef = useRef<any>(null);
     const monacoRef = useRef<any>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const runIdRef = useRef<string | null>(null);
     const submissionIdRef = useRef<string | null>(null);
 
-    // State to trigger polling (this causes re-render)
     const [pollRunId, setPollRunId] = useState<string | null>(null);
     const [pollSubmissionId, setPollSubmissionId] = useState<string | null>(null);
 
-    // Get problemId and contestId from URL
     const params = useParams();
     const problemId = params.problemId as string;
     const contestId = params.contestId as string;
@@ -179,22 +175,32 @@ const CodingProblemPage = () => {
     const [problemData, setProblemData] = useState<ProblemData | null>(null);
     const [loadingProblem, setLoadingProblem] = useState(true);
 
+    // --- Tabs for Submissions ---
+    const [openTabs, setOpenTabs] = useState<Array<{
+        id: string;
+        status: string;
+        language: string;
+        executionTime: number | null;
+        memoryUsed: number | null;
+        submittedAt: string;
+        code: string;
+    }>>([]);
+    const [activeTabId, setActiveTabId] = useState<string | null>(null);
+
     // --- Fetch Problem Data ---
     useEffect(() => {
         const fetchProblemData = async () => {
             if (!problemId) return;
             setLoadingProblem(true);
             try {
-                const url = contestId
-                    ? `http://localhost:4000/api/v1/contests/problem/detail/${problemId}?contestId=${contestId}`
-                    : `http://localhost:4000/api/v1/problems/detail/${problemId}`;
+                const url =  `http://localhost:4000/api/v1/contests/problem/detail/${problemId}?contestId=${contestId}`;
                 const res = await fetch(url, { credentials: 'include' });
                 if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
                 const data = await res.json();
                 setProblemData(data.data);
             } catch (error) {
                 console.error("Error fetching problem:", error);
-                alert("Failed to load problem. Please try again.");
+                toast.error("Failed to load problem. Please try again.");
             } finally {
                 setLoadingProblem(false);
             }
@@ -211,6 +217,19 @@ const CodingProblemPage = () => {
         }
     }, [problemData]);
 
+    // --- Load Saved Code from LocalStorage ---
+    useEffect(() => {
+        if (!problemId || !selectedLanguage || activeTabId !== null) return;
+        const saved = localStorage.getItem(`problem_${problemId}_lang_${selectedLanguage.language.id}`);
+        if (saved) {
+            try {
+                setCode(JSON.parse(saved).code);
+            } catch (e) {
+                console.warn("Failed to parse saved code", e);
+            }
+        }
+    }, [problemId, selectedLanguage, activeTabId]);
+
     // --- Polling for Run Result ---
     const { data: polledRunResult } = usePolling<RunResult>(
         pollRunId ? `http://localhost:4000/api/v1/run/${pollRunId}` : null
@@ -224,16 +243,14 @@ const CodingProblemPage = () => {
     // --- Update Run Result from Polling ---
     useEffect(() => {
         if (polledRunResult) {
-
             setRunResult({
                 status: polledRunResult.status,
-                result: polledRunResult.result // Keep full structure
+                result: polledRunResult.result
             });
-
             setTestCaseView('result');
             if (polledRunResult.status === "Done" || polledRunResult.status === "Failed") {
                 setIsRunning(false);
-                setPollRunId(null); // Stop polling
+                setPollRunId(null);
             }
         }
     }, [polledRunResult]);
@@ -275,30 +292,10 @@ const CodingProblemPage = () => {
     // --- Initialize Monaco Editor ---
     useEffect(() => {
         if (!selectedLanguage) return;
-        if (window.monaco) {
+        if (window?.monaco) {
             initializeEditor();
             return;
         }
-        window.MonacoEnvironment = {
-            getWorkerUrl: (_moduleId: string, label: string) => {
-                const baseUrl = 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min';
-                if (label === 'json') return `${baseUrl}/vs/language/json/json.worker.min.js`;
-                if (['css', 'scss', 'less'].includes(label)) return `${baseUrl}/vs/language/css/css.worker.min.js`;
-                if (['html', 'handlebars', 'razor'].includes(label)) return `${baseUrl}/vs/language/html/html.worker.min.js`;
-                if (['typescript', 'javascript'].includes(label)) return `${baseUrl}/vs/language/typescript/ts.worker.min.js`;
-                return `${baseUrl}/vs/editor/editor.worker.min.js`;
-            },
-        };
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js';
-        script.onload = () => {
-            window.require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
-            window.require(['vs/editor/editor.main'], () => {
-                monacoRef.current = window.monaco;
-                initializeEditor();
-            });
-        };
-        document.head.appendChild(script);
 
         return () => {
             if (editorRef.current) editorRef.current.dispose();
@@ -333,23 +330,59 @@ const CodingProblemPage = () => {
                 contextmenu: true,
                 quickSuggestions: true,
                 suggestOnTriggerCharacters: true,
+                readOnly: activeTabId !== null, // Make readonly when viewing submissions
             }
         );
-        editorRef.current.onDidChangeModelContent(() => {
-            setCode(editorRef.current.getValue());
-        });
+
+        // Only allow editing when in main editor
+        if (activeTabId === null) {
+            editorRef.current.onDidChangeModelContent(() => {
+                const newCode = editorRef.current.getValue();
+                setCode(newCode);
+
+                // Save to localStorage only if in main editor
+                if (activeTabId === null && problemId && selectedLanguage) {
+                    localStorage.setItem(
+                        `problem_${problemId}_lang_${selectedLanguage.language.id}`,
+                        JSON.stringify({ code: newCode, timestamp: Date.now() })
+                    );
+                }
+            });
+        }
     };
+
+    // Update editor content and readonly state when active tab changes
+    useEffect(() => {
+        if (editorRef.current && monacoRef.current) {
+            const currentCode = activeTabId === null ?
+                (selectedLanguage ? selectedLanguage.boilerplate : '') :
+                (openTabs.find(t => t.id === activeTabId)?.code || '');
+
+            // Update the model content
+            const model = editorRef.current.getModel();
+            if (model) {
+                model.setValue(currentCode);
+            }
+
+            // Update readonly state
+            editorRef.current.updateOptions({
+                readOnly: activeTabId !== null
+            });
+        }
+    }, [activeTabId, openTabs, selectedLanguage]);
 
     // --- Handle Language Change ---
     const handleLanguageChange = (langId: string) => {
         const lang = problemData?.problemDetail.problemLanguage.find(l => l.id === langId);
         if (lang) {
             setSelectedLanguage(lang);
-            setCode(lang.boilerplate);
+            if (activeTabId === null) {
+                setCode(lang.boilerplate);
+            }
         }
     };
 
-    // --- Get All Test Cases (Sample + Custom) ---
+    // --- Get All Test Cases ---
     const getAllTestCases = () => {
         const testcases = problemData?.testcases.map(tc => ({
             input: tc.input.trim(),
@@ -365,19 +398,17 @@ const CodingProblemPage = () => {
     // --- Run Code ---
     const runCode = async () => {
         if (!problemData || !selectedLanguage || !code.trim()) {
-            alert("Please write some code first.");
+            toast.info("Please write some code first.");
             return;
         }
         const allTestCases = getAllTestCases();
         if (allTestCases.length === 0) {
-            alert("No test cases available to run.");
+            toast.info("No test cases available to run.");
             return;
         }
-
         setIsRunning(true);
         setRunResult(null);
-        setPollRunId(null); // Reset polling state
-
+        setPollRunId(null);
         try {
             const res = await fetch('http://localhost:4000/api/v1/run', {
                 method: 'POST',
@@ -393,10 +424,10 @@ const CodingProblemPage = () => {
             });
             const data = await res.json();
             runIdRef.current = data.data.runId;
-            setPollRunId(data.data.runId); // ✅ Trigger polling via state
+            setPollRunId(data.data.runId);
         } catch (error) {
             console.error("Run request failed:", error);
-            alert("Failed to run code. Please try again.");
+            toast.error("Failed to run code. Please try again.");
             setIsRunning(false);
         }
     };
@@ -404,11 +435,11 @@ const CodingProblemPage = () => {
     // --- Submit Code ---
     const submitCode = async () => {
         if (!problemData || !selectedLanguage || !code.trim()) {
-            alert("Please write some code first.");
+            toast.info("Please write some code first.");
             return;
         }
         setIsSubmitting(true);
-        setPollSubmissionId(null); // Reset polling
+        setPollSubmissionId(null);
         try {
             const res = await fetch('http://localhost:4000/api/v1/submissions', {
                 method: 'POST',
@@ -424,10 +455,12 @@ const CodingProblemPage = () => {
                 }),
             });
             const data = await res.json();
-            setPollSubmissionId(data.data.submissionId); // ✅ Trigger polling
+            setPollSubmissionId(data.data.submissionId);
         } catch (error) {
             console.error("Submission failed:", error);
-            alert("Failed to submit code. Please try again.");
+            toast.error("Failed to submit code. Please try again.");
+            setIsSubmitting(false);
+        }finally{
             setIsSubmitting(false);
         }
     };
@@ -435,7 +468,7 @@ const CodingProblemPage = () => {
     // --- Add Custom Test Case ---
     const addCustomTestCase = () => {
         if (!inputValue.trim() || !outputValue.trim()) {
-            alert("Both input and expected output are required.");
+            toast.info("Both input and expected output are required.");
             return;
         }
         const newTestCase: CustomTestCase = {
@@ -455,7 +488,11 @@ const CodingProblemPage = () => {
         setCustomTestCases(prev => prev.filter(tc => tc.id !== id));
     };
 
-    // --- Mouse Down Handler (for resizing) ---
+    const switchToMainEditor = () => {
+        setActiveTabId(null);
+    };
+
+    // --- Mouse Down Handler ---
     const handleMouseDown = (type: 'horizontal' | 'vertical') => (e: React.MouseEvent) => {
         e.preventDefault();
         setIsResizing(type);
@@ -474,17 +511,15 @@ const CodingProblemPage = () => {
                 if (rightPanel) {
                     const rightRect = rightPanel.getBoundingClientRect();
                     const newHeight = ((e.clientY - rightRect.top) / rightRect.height) * 100;
-                    setEditorHeight(Math.max(30, Math.min(80, newHeight)));
+                    setEditorHeight(Math.max(0, Math.min(90, newHeight)));
                 }
             }
         };
         const handleMouseUp = () => setIsResizing(null);
-
         if (isResizing) {
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
         }
-
         return () => {
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
@@ -498,6 +533,57 @@ const CodingProblemPage = () => {
             ? problemData.testcases.filter(tc => tc.isSample)
             : problemData.testcases;
     };
+
+
+    // --- Format Date: 12 Aug 2025 ---
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        }); // e.g., "23 Aug 2025"
+    };
+
+    // --- Status Badge with Metrics ---
+    const StatusBadge = ({ status, executionTime, memoryUsed }: {
+        status: string;
+        executionTime?: number | null;
+        memoryUsed?: number | null;
+    }) => {
+        const getStatusStyles = (status: string) => {
+            switch (status) {
+                case 'Accepted': return 'bg-green-900 text-green-200 border-green-700';
+                case 'Partially Accepted': return 'bg-yellow-900 text-yellow-200 border-yellow-700';
+                case 'Rejected': return 'bg-red-900 text-red-200 border-red-700';
+                default: return 'bg-gray-700 text-gray-300 border-gray-600';
+            }
+        };
+
+        return (
+            <div className="flex items-center gap-1">
+                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${getStatusStyles(status)}`}>
+                    {status}
+                </span>
+                {executionTime !== null && (
+                    <span className="text-xs text-gray-400">{executionTime}ms</span>
+                )}
+                {memoryUsed && (
+                    <span className="text-xs text-gray-400">{Math.round(memoryUsed)} KB</span>
+                )}
+            </div>
+        );
+    };
+
+    // --- Sync active tab with editor code ---
+    useEffect(() => {
+        if (activeTabId === null) {
+            if (selectedLanguage) setCode(selectedLanguage.boilerplate);
+        } else {
+            const tab = openTabs.find(t => t.id === activeTabId);
+            if (tab) setCode(tab.code);
+        }
+    }, [activeTabId, openTabs, selectedLanguage]);
 
     if (loadingProblem) {
         return (
@@ -518,9 +604,11 @@ const CodingProblemPage = () => {
                             <ArrowLeft className="h-5 w-5 text-gray-300" />
                         </button>
                         <h1 className="text-xl font-bold text-white">{problemData?.problemDetail.title}</h1>
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-900 text-green-200">
+
+                        {/*problem difficulty pending*/}
+                        {/* <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-900 text-green-200">
                             Easy
-                        </span>
+                        </span> */}
                     </div>
                     <div className="flex items-center gap-3">
                         <select
@@ -536,7 +624,7 @@ const CodingProblemPage = () => {
                         </select>
                         <button
                             onClick={runCode}
-                            disabled={isRunning}
+                            disabled={isRunning || activeTabId !== null}
                             className="bg-green-600 hover:bg-green-700 disabled:bg-green-800 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors"
                         >
                             <Play className="h-4 w-4" />
@@ -544,7 +632,7 @@ const CodingProblemPage = () => {
                         </button>
                         <button
                             onClick={submitCode}
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || activeTabId !== null}
                             className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors"
                         >
                             <Upload className="h-4 w-4" />
@@ -557,7 +645,7 @@ const CodingProblemPage = () => {
             <div className="flex flex-1 overflow-hidden">
                 {/* Left Panel */}
                 <div className="bg-gray-800 border-r border-gray-700 flex flex-col" style={{ width: `${leftPanelWidth}%` }}>
-                    <div className="px-6 py-4 border-b border-gray-700 bg-gray-750 flex-shrink-0">
+                    <div className="px-6 py-2 border-b border-gray-700 bg-gray-750 flex-shrink-0">
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setActiveTab('description')}
@@ -581,15 +669,25 @@ const CodingProblemPage = () => {
                     </div>
 
                     {activeTab === 'description' && (
-                        <div className="flex-1 p-6 overflow-y-auto">
+                        <div className="flex-1 p-6 overflow-y-auto scrollbar-hide">
                             <div className="prose prose-invert max-w-none">
                                 <div className="text-gray-300 leading-relaxed mb-6 whitespace-pre-line">
-                                    {problemData?.problemDetail.problemStatement}
+                                    <div
+                                        className="  max-w-none"
+                                        dangerouslySetInnerHTML={{
+                                            __html: `<p class="mb-4">${parseMarkdown(problemData?.problemDetail.problemStatement)}</p>`
+                                        }}
+                                    />
                                 </div>
                                 <h4 className="font-semibold text-gray-100 mb-2">Constraints</h4>
-                                <pre className="text-gray-300 mb-6 text-sm bg-gray-700 p-4 rounded-lg border border-gray-600">
-                                    {problemData?.problemDetail.constraints}
-                                </pre>
+                                <div className="text-gray-300 mb-6 text-sm bg-gray-700 p-4 rounded-lg border border-gray-600">
+                                    <div
+                                        className="  max-w-none"
+                                        dangerouslySetInnerHTML={{
+                                            __html: `<p class="mb-4">${parseMarkdown(problemData?.problemDetail.constraints)}</p>`
+                                        }}
+                                    />
+                                </div>
                                 <div className="flex flex-wrap gap-2 mb-6">
                                     {problemData?.problemDetail.problemTags.map(tag => (
                                         <span key={tag.id} className="px-3 py-1 rounded-full text-xs font-medium bg-gray-700 text-gray-300 border border-gray-600">
@@ -602,7 +700,7 @@ const CodingProblemPage = () => {
                     )}
 
                     {activeTab === 'submissions' && (
-                        <div className="flex-1 p-6 overflow-y-auto">
+                        <div className="flex-1 p-6 overflow-y-auto scrollbar-hide">
                             <h3 className="text-lg font-semibold text-white mb-4">Submission History</h3>
                             {submissionsLoading ? (
                                 <div className="flex justify-center py-8">
@@ -612,29 +710,53 @@ const CodingProblemPage = () => {
                                 <p className="text-gray-400">No submissions yet.</p>
                             ) : (
                                 <div className="space-y-3">
-                                    {submissionHistory.map((submission, i) => (
-                                        <div key={i} className="p-4 bg-gray-700 rounded-lg border border-gray-600">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <StatusBadge status={submission.status} />
-                                                <span className="text-xs text-gray-400">
-                                                    {new Date(submission.submittedAt).toLocaleDateString()}
-                                                </span>
+                                    {submissionHistory.map((submission, i) => {
+                                        const formattedDate = formatDate(submission.submittedAt);
+
+                                        return (
+                                            <div
+                                                key={i}
+                                                className="p-4 bg-gray-700 rounded-lg border border-gray-600 hover:bg-gray-650 cursor-pointer transition-colors"
+                                                onClick={() => {
+                                                    const exists = openTabs.find(t => t.id === submission.id);
+                                                    if (!exists) {
+                                                        setOpenTabs(prev => [
+                                                            ...prev,
+                                                            {
+                                                                id: submission.id,
+                                                                status: submission.status,
+                                                                language: submission.language.name,
+                                                                executionTime: submission.executionTime,
+                                                                memoryUsed: submission.memoryUsed,
+                                                                submittedAt: submission.submittedAt,
+                                                                code: submission.code,
+                                                            }
+                                                        ]);
+                                                    }
+                                                    setActiveTabId(submission.id);
+                                                }}
+                                            >
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <StatusBadge
+                                                        status={submission.status}
+                                                        executionTime={submission.executionTime}
+                                                        memoryUsed={submission.memoryUsed}
+                                                    />
+                                                    <span className="text-xs text-gray-400">{formattedDate}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-gray-300">{submission.language.name}</span>
+                                                </div>
                                             </div>
-                                            <div className="flex justify-between items-center text-sm">
-                                                <span className="text-gray-300">{submission.language.name}</span>
-                                                {submission.executionTime && (
-                                                    <span className="text-gray-400 flex items-center gap-1">
-                                                        <Clock className="h-3 w-3" />
-                                                        {submission.executionTime}ms
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
                     )}
+                    <div className='h-5'>
+
+                    </div>
                 </div>
 
                 {/* Vertical Resizer */}
@@ -646,29 +768,140 @@ const CodingProblemPage = () => {
                 </div>
 
                 {/* Right Panel */}
-                <div className="flex flex-col right-panel" style={{ width: `${100 - leftPanelWidth}%` }}>
-                    {/* Editor */}
-                    <div className="bg-gray-800 flex flex-col" style={{ height: `${editorHeight}%` }}>
-                        <div className="px-4 py-2 bg-gray-750 border-b border-gray-600 flex items-center justify-between flex-shrink-0">
-                            <span className="text-sm font-medium text-gray-300">Code Editor</span>
-                            <span className="text-xs text-gray-400">{selectedLanguage?.language.name}</span>
+                <div className="flex flex-col right-panel overflow-hidden" style={{ width: `${100 - leftPanelWidth}%` }}>
+                    <div className="flex items-center bg-gray-750 border-b border-gray-600 scrollbar-hide ">
+                        {/* Main Editor Tab */}
+                        <div
+                            className={`flex-shrink-0 px-4 py-2 border-r border-gray-600 cursor-pointer text-sm font-medium flex items-center gap-2
+                                    ${activeTabId === null ? 'bg-gray-700 text-white' : 'text-gray-300 hover:text-white'}`}
+                            onClick={() => {
+                                setActiveTabId(null);
+                            }}
+                        >
+                            <Code className="h-3 w-3" />
+                            Main Editor
                         </div>
+
+                        {/* Submission Tabs */}
+                        {openTabs.map(tab => {
+                            const date = new Date(tab.submittedAt).toLocaleDateString('en-US', {
+                                day: 'numeric',
+                                month: 'short'
+                            }); // "23 Aug"
+
+                            return (
+                                <div
+                                    key={tab.id}
+                                    className={`flex-shrink-0 px-4 py-2 border-r border-gray-600 cursor-pointer text-xs flex items-center gap-2
+                                            ${activeTabId === tab.id ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                                    onClick={() => {
+                                        setActiveTabId(tab.id);
+                                    }}
+                                >
+                                    <span className="font-medium">Submission</span>
+                                    <span className="text-gray-500">{date}</span>
+                                    <button
+                                        className="ml-1 text-gray-500 hover:text-red-400"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setOpenTabs(prev => prev.filter(t => t.id !== tab.id));
+                                            if (activeTabId === tab.id) {
+                                                setActiveTabId(null);
+                                            }
+                                        }}
+                                    >
+                                        <X className="h-3 w-3" />
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="bg-gray-800 flex flex-col" style={{ height: `${editorHeight}%` }}>
+                        {/* Editor Content */}
                         <div className="flex-1 p-4">
-                            <div id="monaco-editor" className="h-full w-full rounded-lg border border-gray-600" />
+                            {activeTabId === null ? (
+                                // --- Main Editor: Show Monaco Editor ---
+                                <MonacoEditor
+                                    value={code}
+                                    language={{
+                                        'Python': 'python',
+                                        'C++': 'cpp',
+                                        'Java': 'java',
+                                        'JavaScript': 'javascript',
+                                    }[selectedLanguage?.language.name || 'Python'] || 'plaintext'}
+                                    onChange={setCode}
+                                    readOnly={false}
+                                    theme="vs-dark"
+                                />
+                            ) : (<div className="flex-1 flex flex-col overflow-y-auto h-[500px] scrollbar-hide">
+                                {activeTabId !== null && (
+                                    <div className=" py-4 bg-gray-750 text-sm">
+                                        <div className="flex flex-wrap gap-4 items-center">
+                                            <StatusBadge
+                                                status={openTabs.find(t => t.id === activeTabId)?.status || ''}
+                                                executionTime={openTabs.find(t => t.id === activeTabId)?.executionTime}
+                                                memoryUsed={openTabs.find(t => t.id === activeTabId)?.memoryUsed}
+                                            />
+                                            <span className="text-gray-300">
+                                                Date: <span className="text-gray-400">
+                                                    {formatDate(openTabs.find(t => t.id === activeTabId)?.submittedAt || '')}
+                                                </span>
+                                            </span>
+                                            <span className="text-yellow-400 text-xs">
+                                                Read-only submission
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="bg-gray-800 rounded-lg border border-gray-600    flex flex-col">
+                                    <div className="p-3 border-b border-gray-600 bg-gray-750 flex justify-between items-center">
+                                        <span className="text-sm font-mono text-gray-300">
+                                            {openTabs.find(t => t.id === activeTabId)?.language} • Read-only
+                                        </span>
+                                    </div>
+                                    <div className="flex-1 p-4 overflow-auto">
+                                        <SyntaxHighlighter
+                                            language={
+                                                {
+                                                    'Python': 'python',
+                                                    'C++': 'cpp',
+                                                    'Java': 'java',
+                                                    'JavaScript': 'javascript',
+                                                }[selectedLanguage?.language.name || 'Python'] || 'plaintext'
+                                            }
+                                            style={tomorrow}
+                                            customStyle={{
+                                                margin: 0,
+                                                padding: '1rem',
+                                                borderRadius: '0.5rem',
+                                                fontSize: '14px',
+                                                lineHeight: '1.5',
+                                                backgroundColor: '#1e1e1e',
+                                                fontFamily: `'Fira Code', 'Monaco', 'Menlo', monospace`,
+                                            }}
+                                            wrapLongLines={true}
+                                        >
+                                            {code}
+                                        </SyntaxHighlighter>
+                                    </div>
+                                </div>
+                            </div>
+                            )}
                         </div>
                     </div>
 
                     {/* Horizontal Resizer */}
                     <div
-                        className="h-1 bg-gray-600 hover:bg-gray-500 cursor-row-resize transition-colors"
+                        className="h-1 bg-gray-600 hover:bg-gray-500 cursor-row-resize transition-colors z-100"
                         onMouseDown={handleMouseDown('vertical')}
                     >
                         <GripVertical className="h-4 w-4 text-gray-500 rotate-90 mx-auto" />
                     </div>
 
                     {/* Test Cases & Results */}
-                    <div className="bg-gray-800 flex flex-col" style={{ height: `${100 - editorHeight}%` }}>
-                        <div className="px-6 py-4 bg-gray-750 border-b border-gray-600 flex items-center justify-between flex-shrink-0">
+                    <div className="bg-gray-800 flex flex-col z-100 " style={{ height: `${100 - editorHeight}%` }}>
+                        <div className="px-6 py-3 bg-gray-750 border-b border-gray-600 flex items-center justify-between flex-shrink-0">
                             <div className="flex items-center gap-4">
                                 <div className="flex gap-2">
                                     <button
@@ -716,48 +949,47 @@ const CodingProblemPage = () => {
                         </div>
 
                         {showCustomInput && (
-                            <div className="px-6 py-4 bg-gray-700 border-b border-gray-600 space-y-3 flex-shrink-0">
-                                <div>
+                            <div className="m-6 rounded-xl px-6 py-4 bg-gray-700 border-b border-gray-600 space-y-3 flex-shrink-0 flex justify-between">
+                                <div className='w-1/3'>
                                     <label className="block text-sm font-medium text-gray-300 mb-1">Input</label>
                                     <textarea
                                         placeholder="Enter test input..."
                                         value={inputValue}
                                         onChange={(e) => setInputValue(e.target.value)}
-                                        className="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-100 text-sm font-mono resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-100 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
                                         rows={3}
                                     />
                                 </div>
-                                <div>
+                                <div className='w-1/3'>
                                     <label className="block text-sm font-medium text-gray-300 mb-1">Expected Output</label>
                                     <textarea
                                         placeholder="Enter expected output..."
                                         value={outputValue}
                                         onChange={(e) => setOutputValue(e.target.value)}
-                                        className="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-100 text-sm font-mono resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-100 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
                                         rows={3}
                                     />
                                 </div>
-                                <div className="flex justify-end gap-2">
-                                    <button
-                                        onClick={() => setShowCustomInput(false)}
-                                        className="px-3 py-2 border border-gray-600 rounded-lg text-sm hover:bg-gray-600 transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
+                                <div className="flex items-end gap-2 mb-5">
                                     <button
                                         onClick={addCustomTestCase}
-                                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm transition-colors"
+                                        className="h-fit bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm transition-colors"
                                     >
                                         Add Test
+                                    </button>
+                                    <button
+                                        onClick={() => setShowCustomInput(false)}
+                                        className=" h-fit px-3 py-2 border border-gray-600 rounded-lg text-sm hover:bg-gray-600 transition-colors"
+                                    >
+                                        Cancel
                                     </button>
                                 </div>
                             </div>
                         )}
 
-                        <div className="flex-1 p-6 overflow-y-auto">
+                        <div className="flex-1 p-6 overflow-y-auto scrollbar-hide">
                             {testCaseView === 'testcases' ? (
                                 <div className="space-y-4">
-                                    {/* Sample Test Cases */}
                                     {getVisibleTestCases().map((testCase, idx) => (
                                         <div key={testCase.id} className="bg-gray-700 rounded-lg border border-gray-600">
                                             <div className="px-4 py-3 border-b border-gray-600 flex items-center justify-between">
@@ -781,7 +1013,7 @@ const CodingProblemPage = () => {
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-300 mb-1">Expected Output</label>
-                                                    <pre className="bg-gray-800 p-3 rounded border border-gray-600 text-sm font-mono text-gray-100 overflow-x-auto">
+                                                    <pre className="bg-gray-800 p-3 rounded border border-green-600 text-sm font-mono text-green-200 overflow-x-auto">
                                                         {testCase.output}
                                                     </pre>
                                                 </div>
@@ -796,8 +1028,6 @@ const CodingProblemPage = () => {
                                             </div>
                                         </div>
                                     ))}
-
-                                    {/* Custom Test Cases */}
                                     {customTestCases.map((testCase, idx) => (
                                         <div key={testCase.id} className="bg-gray-700 rounded-lg border border-gray-600">
                                             <div className="px-4 py-3 border-b border-gray-600 flex items-center justify-between">
@@ -825,32 +1055,23 @@ const CodingProblemPage = () => {
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-300 mb-1">Expected Output</label>
-                                                    <pre className="bg-gray-800 p-3 rounded border border-gray-600 text-sm font-mono text-gray-100 overflow-x-auto">
+                                                    <pre className="bg-gray-800 p-3 rounded border border-green-600 text-sm font-mono text-green-200 overflow-x-auto">
                                                         {testCase.output}
                                                     </pre>
                                                 </div>
                                             </div>
                                         </div>
                                     ))}
-
-                                    {getVisibleTestCases().length === 0 && customTestCases.length === 0 && (
-                                        <div className="text-center text-gray-500 py-8">
-                                            <List className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                                            <p>No test cases available</p>
-                                        </div>
-                                    )}
                                 </div>
                             ) : (
-                                // Results View
                                 <div className="space-y-4">
                                     {runResult?.result ? (
                                         <>
-                                            {/* Summary Bar */}
                                             <div className="flex items-center justify-between mb-4 p-3 bg-gray-700 rounded-lg border border-gray-600">
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-lg font-semibold text-gray-200">Test Results</span>
                                                     <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                    ${runResult.status === 'Done' ? 'bg-green-900 text-green-200' :
+                                        ${runResult.status === 'Done' ? 'bg-green-900 text-green-200' :
                                                             runResult.status === 'Failed' ? 'bg-red-900 text-red-200' :
                                                                 'bg-yellow-900 text-yellow-200'}`}>
                                                         {runResult.status}
@@ -860,105 +1081,88 @@ const CodingProblemPage = () => {
                                                     </span>
                                                 </div>
                                             </div>
-
-                                            {/* Individual Test Case Results */}
-                                            <div className="space-y-4">
-                                                {runResult.result.results.map((res, idx) => {
-                                                    const isCustom = idx >= (problemData?.testcases.length || 0);
-                                                    const label = isCustom
-                                                        ? `Custom Test ${idx - (problemData?.testcases.length || 0) + 1}`
-                                                        : `Test Case ${idx + 1}`;
-
-                                                    let Icon, color, bg;
-
-                                                    if (res.compilerError) {
-                                                        Icon = XCircle;
-                                                        color = 'text-red-400';
-                                                        bg = 'bg-red-900/20 border-red-700';
-                                                    } else if (res.runtimeError) {
-                                                        Icon = TriangleAlert;
-                                                        color = 'text-yellow-400';
-                                                        bg = 'bg-yellow-900/20 border-yellow-700';
-                                                    } else if (res.status === 'Accepted') {
-                                                        Icon = CheckCircle;
-                                                        color = 'text-green-400';
-                                                        bg = 'bg-green-900/20 border-green-700';
-                                                    } else {
-                                                        Icon = XCircle;
-                                                        color = 'text-red-400';
-                                                        bg = 'bg-red-900/20 border-red-700';
-                                                    }
-
-                                                    return (
-                                                        <div key={idx} className={`p-4 rounded-lg border ${bg} shadow-sm`}>
-                                                            {/* Header: Status + Label */}
-                                                            <div className="flex items-center gap-2 mb-3">
-                                                                <Icon className={`h-5 w-5 ${color}`} />
-                                                                <strong className={`font-medium ${color}`}>
-                                                                    {res.compilerError ? 'Compile Error' :
-                                                                        res.runtimeError ? 'Runtime Error' :
-                                                                            res.status}
-                                                                </strong>
-                                                                <span className="text-gray-400 text-sm">({label})</span>
-                                                            </div>
-
-                                                            {/* Compile Error */}
-                                                            {res.compilerError && (
-                                                                <div className="mb-3">
-                                                                    <label className="block text-sm font-medium text-red-300 mb-1">Compile Error</label>
-                                                                    <pre className="text-red-100 bg-red-900/40 p-3 rounded border border-red-700 text-sm font-mono overflow-x-auto">
-                                                                        {res.compilerError}
-                                                                    </pre>
-                                                                </div>
-                                                            )}
-
-                                                            {/* Runtime Error */}
-                                                            {res.runtimeError && !res.compilerError && (
-                                                                <div className="mb-3">
-                                                                    <label className="block text-sm font-medium text-yellow-300 mb-1">Runtime Error</label>
-                                                                    <pre className="text-yellow-100 bg-yellow-900/40 p-3 rounded border border-yellow-700 text-sm font-mono overflow-x-auto">
-                                                                        {res.runtimeError}
-                                                                    </pre>
-                                                                </div>
-                                                            )}
-
-                                                            {/* Output vs Expected (only if no compile/runtime error) */}
-                                                            {!res.compilerError && !res.runtimeError && (
-                                                                <>
-                                                                    <div className="mb-2">
-                                                                        <label className="block text-sm font-medium text-gray-300 mb-1">Output</label>
-                                                                        <pre className="bg-gray-800 p-3 rounded border border-gray-600 text-sm font-mono text-gray-100 overflow-x-auto max-h-32 overflow-y-auto">
-                                                                            {res.output || '<blank>'}
-                                                                        </pre>
-                                                                    </div>
-
-                                                                    <div className="mb-2">
-                                                                        <label className="block text-sm font-medium text-gray-300 mb-1">Expected</label>
-                                                                        <pre className="bg-gray-800 p-3 rounded border border-green-600 text-sm font-mono text-green-200 overflow-x-auto max-h-32 overflow-y-auto">
-                                                                            {problemData?.testcases[idx]?.output ??
-                                                                                customTestCases[idx - (problemData?.testcases.length || 0)]?.output ??
-                                                                                '<not available>'}
-                                                                        </pre>
-                                                                    </div>
-                                                                </>
-                                                            )}
-
-                                                            {/* Metrics */}
-                                                            <div className="flex items-center gap-4 text-xs text-gray-400 mt-2">
-                                                                {res.executionTime !== undefined && (
-                                                                    <span className="flex items-center gap-1">
-                                                                        <Clock className="h-3 w-3" />
-                                                                        {res.executionTime}ms
-                                                                    </span>
-                                                                )}
-                                                                {res.memory !== undefined && (
-                                                                    <span>Memory: {res.memory}KB</span>
-                                                                )}
-                                                            </div>
+                                            {runResult.result.results.map((res, idx) => {
+                                                const isCustom = idx >= (problemData?.testcases.length || 0);
+                                                const label = isCustom
+                                                    ? `Custom Test ${idx - (problemData?.testcases.length || 0) + 1}`
+                                                    : `Test Case ${idx + 1}`;
+                                                let Icon, color, bg;
+                                                if (res.compilerError) {
+                                                    Icon = XCircle;
+                                                    color = 'text-red-400';
+                                                    bg = 'bg-red-900/20 border-red-700';
+                                                } else if (res.runtimeError) {
+                                                    Icon = TriangleAlert;
+                                                    color = 'text-yellow-400';
+                                                    bg = 'bg-yellow-900/20 border-yellow-700';
+                                                } else if (res.status === 'Accepted') {
+                                                    Icon = CheckCircle;
+                                                    color = 'text-green-400';
+                                                    bg = 'bg-green-900/20 border-green-700';
+                                                } else {
+                                                    Icon = XCircle;
+                                                    color = 'text-red-400';
+                                                    bg = 'bg-red-900/20 border-red-700';
+                                                }
+                                                return (
+                                                    <div key={idx} className={`p-4 rounded-lg border ${bg} shadow-sm`}>
+                                                        <div className="flex items-center gap-2 mb-3">
+                                                            <Icon className={`h-5 w-5 ${color}`} />
+                                                            <strong className={`font-medium ${color}`}>
+                                                                {res.compilerError ? 'Compile Error' :
+                                                                    res.runtimeError ? 'Runtime Error' :
+                                                                        res.status}
+                                                            </strong>
+                                                            <span className="text-gray-400 text-sm">({label})</span>
                                                         </div>
-                                                    );
-                                                })}
-                                            </div>
+                                                        {res.compilerError && (
+                                                            <div className="mb-3">
+                                                                <label className="block text-sm font-medium text-red-300 mb-1">Compile Error</label>
+                                                                <pre className="text-red-100 bg-red-900/40 p-3 rounded border border-red-700 text-sm font-mono overflow-x-auto">
+                                                                    {res.compilerError}
+                                                                </pre>
+                                                            </div>
+                                                        )}
+                                                        {res.runtimeError && !res.compilerError && (
+                                                            <div className="mb-3">
+                                                                <label className="block text-sm font-medium text-yellow-300 mb-1">Runtime Error</label>
+                                                                <pre className="text-yellow-100 bg-yellow-900/40 p-3 rounded border border-yellow-700 text-sm font-mono overflow-x-auto">
+                                                                    {res.runtimeError}
+                                                                </pre>
+                                                            </div>
+                                                        )}
+                                                        {!res.compilerError && !res.runtimeError && (
+                                                            <>
+                                                                <div className="mb-2">
+                                                                    <label className="block text-sm font-medium text-gray-300 mb-1">Output</label>
+                                                                    <pre className="bg-gray-800 p-3 rounded border border-gray-600 text-sm font-mono text-gray-100 overflow-x-auto max-h-32 overflow-y-auto">
+                                                                        {res.output || '<blank>'}
+                                                                    </pre>
+                                                                </div>
+                                                                <div className="mb-2">
+                                                                    <label className="block text-sm font-medium text-gray-300 mb-1">Expected</label>
+                                                                    <pre className="bg-gray-800 p-3 rounded border border-green-600 text-sm font-mono text-green-200 overflow-x-auto max-h-32 overflow-y-auto">
+                                                                        {problemData?.testcases[idx]?.output ??
+                                                                            customTestCases[idx - (problemData?.testcases.length || 0)]?.output ??
+                                                                            '<not available>'}
+                                                                    </pre>
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                        <div className="flex items-center gap-4 text-xs text-gray-400 mt-2">
+                                                            {res.executionTime !== undefined && (
+                                                                <span className="flex items-center gap-1">
+                                                                    <Clock className="h-3 w-3" />
+                                                                    {res.executionTime}ms
+                                                                </span>
+                                                            )}
+                                                            {res.memory !== undefined && (
+                                                                <span>Memory: {res.memory}KB</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
                                         </>
                                     ) : (
                                         <div className="text-center text-gray-500 py-12">
@@ -970,31 +1174,13 @@ const CodingProblemPage = () => {
                                 </div>
                             )}
                         </div>
+                        <div className='h-5'>
+
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    );
-};
-
-// --- Helper Component ---
-const StatusBadge = ({ status }: { status: string }) => {
-    const getStatusStyles = (status: string) => {
-        switch (status) {
-            case 'Accepted':
-                return 'bg-green-900 text-green-200 border-green-700';
-            case 'Partially Accepted':
-                return 'bg-yellow-900 text-yellow-200 border-yellow-700';
-            case 'Rejected':
-                return 'bg-red-900 text-red-200 border-red-700';
-            default:
-                return 'bg-gray-700 text-gray-300 border-gray-600';
-        }
-    };
-    return (
-        <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${getStatusStyles(status)}`}>
-            {status}
-        </span>
     );
 };
 
