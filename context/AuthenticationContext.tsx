@@ -7,34 +7,44 @@ import { UserProfile } from '@/types/dashboard'
 import { usePathname } from 'next/navigation';
 
 type AuthContextType = {
-    success: boolean;
+    loading: boolean;
     user: UserProfile | null;
     setUser: Dispatch<SetStateAction<UserProfile | null>>;
-    setSuccess: Dispatch<SetStateAction<boolean>>;
+    setLoading: Dispatch<SetStateAction<boolean>>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<UserProfile | null>(null);
-    const [success, setSuccess] = useState<boolean>(false);
     const router = useRouter();
     const pathname = usePathname();
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const res = {
-                    data: {
-                        user: null,
-                        success: true
+                setLoading(true);
+                const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`, {
+                    withCredentials: true,
+                    headers: {
+                        'Content-Type': 'application/json'
                     }
+                });
+                const userData = res.data;
+
+                setUser(userData.user);
+                if (userData.user.role === 'TEACHER') {
+                    router.push('/teacher');
                 }
-                setUser(res.data.user);
-                setSuccess(res.data.success);
+                else if (userData.user.role === 'STUDENT') {
+                    router.push('/coding');
+                } 
             } catch (err) {
                 setUser(null);
-                router.push('/')
+                router.push('/');
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -42,7 +52,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, setUser, success, setSuccess }}>
+        <AuthContext.Provider value={{ user, setUser, loading, setLoading }}>
             {children}
         </AuthContext.Provider>
     );

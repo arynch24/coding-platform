@@ -1,18 +1,16 @@
-'use client';
-
 import ContestForm from '@/components/ContestForm';
 
-interface ViewContestPageProps {
-  params: {
-    contestId: string;
-  };
-}
+export default async function ViewContestPage({
+  params,
+}: {
+  params: Promise<{ contestId: string }>;
+}) {
+  const { contestId } = await params;
 
-export default function ViewContestPage({ params }: ViewContestPageProps) {
   return (
-    <ContestForm 
-      contestId={params.contestId} 
-      mode="view" 
+    <ContestForm
+      contestId={contestId}
+      mode="view"
     />
   );
 }

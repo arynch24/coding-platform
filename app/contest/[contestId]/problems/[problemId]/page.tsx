@@ -8,6 +8,13 @@ import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { parseMarkdown } from '@/lib/utils/parseMarkdown';
 import { toast } from "sonner";
 
+// --- Extend Window interface for Monaco ---
+declare global {
+    interface Window {
+        monaco?: any;
+    }
+}
+
 // --- Types ---
 interface Language {
     id: string;

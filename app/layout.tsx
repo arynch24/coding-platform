@@ -5,8 +5,7 @@ import { ContextProvider } from "@/context/DashboardContext";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "QC Auditor",
-  description: "Quality Controler Dashboard for Auditors and Managers",
+  title: "Coding Platform",
 };
 
 export default function RootLayout({
